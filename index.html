@@ -1,0 +1,1389 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>莊勛凱 ♡ 楊恩懿 婚禮邀請函</title>
+<link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Serif+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --peach:#f97b5a; --coral:#f4a47a; --cream:#fff8f3;
+  --ink:#3a1e10; --muted:#9a6655; --gold:#f5c842; --deep:#d05030;
+  --border:rgba(249,180,150,.24);
+  --font-name:'Noto Serif TC',serif;
+  --font-calli:'Ma Shan Zheng',cursive;
+  --font-script:'Cormorant Garamond',serif;
+  --font-sans:'Noto Sans TC',sans-serif;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;min-height:100%;font-family:var(--font-sans);color:var(--ink);-webkit-tap-highlight-color:transparent;background:linear-gradient(160deg,#fff8f3 0%,#fef0e5 55%,#fce8db 100%);overflow-x:hidden;}
+body{position:relative;}
+
+/* ═══ 燈設計：三層堆疊（本檔重點）═══ */
+/* 1. 蠟燭光暈 — 徑向脈動的暖光 */
+.candle-glow{position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse 80% 55% at 50% 35%,rgba(253,233,162,.42) 0%,transparent 55%),
+             radial-gradient(ellipse 60% 70% at 90% 10%,rgba(249,123,90,.14) 0%,transparent 50%),
+             radial-gradient(ellipse 70% 45% at 10% 90%,rgba(245,200,66,.16) 0%,transparent 55%);
+  animation:glowPulse 6s ease-in-out infinite;}
+@keyframes glowPulse{0%,100%{opacity:.9}50%{opacity:1}}
+
+/* 2. 懸掛燈串 — SVG 曲線繩索 + 錯開閃爍的燈泡 */
+.string-lights{position:fixed;top:0;left:0;width:100%;height:150px;pointer-events:none;z-index:2;}
+.string-lights .bulb{animation:twinkle 3.6s ease-in-out infinite;transform-origin:center;}
+@keyframes twinkle{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* 3. 螢火蟲 — 從底部緩緩上升的暖光點 */
+.firefly-layer{position:fixed;inset:0;pointer-events:none;z-index:1;overflow:hidden;}
+.firefly{position:absolute;bottom:-20px;border-radius:50%;
+  background:radial-gradient(circle,#fff2c2 0%,#ffcf7a 40%,transparent 70%);
+  box-shadow:0 0 12px 3px rgba(255,207,122,.55);
+  animation:floatUp linear infinite;will-change:transform,opacity;}
+@keyframes floatUp{
+  0%{transform:translate(0,0);opacity:0}
+  10%{opacity:1}
+  90%{opacity:1}
+  100%{transform:translate(var(--drift,0),-110vh);opacity:0}
+}
+
+/* ═══ Stage 系統 ═══ */
+.stage{position:fixed;inset:0;z-index:10;opacity:0;pointer-events:none;transition:opacity .55s ease;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.stage.on{opacity:1;pointer-events:all;}
+
+/* ═══ Envelope 信封 ═══ */
+#env{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:36px;}
+.env-scene{cursor:pointer;filter:drop-shadow(0 28px 60px rgba(200,90,50,.28));transition:transform .35s ease;}
+.env-scene:hover{transform:translateY(-10px) rotate(.8deg);}
+.env-box{position:relative;width:min(460px,85vw);height:min(300px,55vw);}
+.env-body{width:100%;height:100%;border-radius:14px;background:linear-gradient(160deg,#fff4ec,#fde8d4);border:2px solid rgba(249,180,150,.55);position:absolute;inset:0;box-shadow:0 6px 32px rgba(200,90,50,.14);}
+.env-flap{position:absolute;top:0;left:0;width:0;
+  border-left:calc(min(460px,85vw)/2) solid transparent;
+  border-right:calc(min(460px,85vw)/2) solid transparent;
+  border-top:calc(min(300px,55vw) * 0.58) solid #fcd0b0;
+  transform-origin:top center;transition:transform .72s cubic-bezier(.4,0,.2,1);z-index:3;}
+.env-scene:hover .env-flap,.env-flap.open{transform:rotateX(-176deg);}
+.env-db{position:absolute;inset:12px;border-radius:8px;border:1.5px dashed rgba(249,150,100,.32);pointer-events:none;}
+.env-seal{position:absolute;top:50%;left:50%;transform:translate(-50%,-18%);width:74px;height:74px;border-radius:50%;z-index:4;background:linear-gradient(135deg,var(--peach),var(--deep));display:flex;align-items:center;justify-content:center;font-family:var(--font-calli);font-size:32px;color:white;box-shadow:0 4px 20px rgba(220,80,40,.4),0 0 0 4px white,0 0 0 6px rgba(249,180,150,.45);animation:sealPulse 2.5s ease-in-out infinite;}
+@keyframes sealPulse{0%,100%{box-shadow:0 4px 20px rgba(220,80,40,.4),0 0 0 4px white,0 0 0 6px rgba(249,180,150,.45)}50%{box-shadow:0 4px 28px rgba(220,80,40,.6),0 0 0 4px white,0 0 0 8px rgba(249,180,150,.6)}}
+.env-names{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);font-family:var(--font-name);font-size:clamp(17px,4.5vw,21px);color:#e85a2a;letter-spacing:6px;white-space:nowrap;z-index:2;font-weight:700;text-shadow:0 2px 6px rgba(255,255,255,.7);}
+.hint{font-family:var(--font-sans);font-size:14px;letter-spacing:5px;color:#5a3020;font-weight:500;animation:hintBob 2.2s ease-in-out infinite;}
+@keyframes hintBob{0%,100%{opacity:.75;transform:translateY(0)}50%{opacity:1;transform:translateY(-5px)}}
+
+/* ═══ Main 主頁 ═══ */
+#main{padding:80px 16px 100px;}
+.page{max-width:560px;margin:0 auto;position:relative;z-index:1;}
+
+/* Hero 標題 */
+.hero-txt{padding:20px 0 30px;text-align:center;}
+.pre{font-family:var(--font-script);font-size:28px;letter-spacing:4px;color:var(--peach);margin-bottom:8px;font-style:italic;}
+.pre-zh{font-family:var(--font-sans);font-size:11px;letter-spacing:7px;color:var(--muted);margin-bottom:16px;font-weight:500;}
+.names{font-family:var(--font-name);font-size:clamp(46px,11vw,66px);line-height:1.05;letter-spacing:6px;background:linear-gradient(135deg,var(--peach) 0%,#d04020 55%,var(--coral) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:700;}
+.amp{background:linear-gradient(135deg,var(--gold),#d09020);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;padding:0 8px;font-family:var(--font-script);font-weight:600;font-style:italic;}
+.names-en{font-family:var(--font-script);font-weight:500;font-size:17px;letter-spacing:5px;color:#6b3a20;margin-top:14px;font-style:italic;}
+
+/* 卡片通用 */
+.icard{background:rgba(255,255,255,.96);border-radius:22px;border:1.5px solid var(--border);box-shadow:0 6px 28px rgba(200,90,50,.12),0 2px 0 rgba(255,255,255,.9) inset;margin-bottom:14px;overflow:hidden;position:relative;}
+
+/* Hero 三層照片堆疊 */
+.hero-stack{position:relative;aspect-ratio:16/9;padding:24px 18px 30px;}
+.hs-layer{position:absolute;border-radius:14px;background-size:cover;background-position:center;transition:transform .8s cubic-bezier(.4,0,.2,1);}
+.hs-back{top:24px;left:0;right:72%;bottom:28px;opacity:.55;transform:rotate(-8deg);box-shadow:0 6px 18px rgba(200,90,50,.2);background-color:#f5ede5;}
+.hs-mid{top:24px;left:72%;right:0;bottom:28px;opacity:.55;transform:rotate(8deg);box-shadow:0 6px 18px rgba(200,90,50,.2);background-color:#f5ede5;}
+.hs-front{top:8px;left:8%;right:8%;bottom:8px;overflow:hidden;box-shadow:0 10px 30px rgba(200,90,50,.25),0 0 0 4px white;background:#fff;border-radius:12px;}
+.hs-slide{position:absolute;inset:0;opacity:0;transition:opacity 1.5s ease;}
+.hs-slide.on{opacity:1;}
+.hs-slide img{width:100%;height:100%;object-fit:cover;transform-origin:center;}
+@keyframes kb-a{0%{transform:scale(1)}100%{transform:scale(1.08) translate(-1.5%,-1%)}}
+@keyframes kb-b{0%{transform:scale(1.08) translate(1.5%,1%)}100%{transform:scale(1) translate(0,0)}}
+@keyframes kb-c{0%{transform:scale(1) translate(1%,0)}100%{transform:scale(1.06) translate(-1%,1%)}}
+.hs-dots{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:5;}
+.hs-dot{width:6px;height:6px;border-radius:3px;background:rgba(255,255,255,.5);box-shadow:0 1px 4px rgba(0,0,0,.3);transition:all .4s;cursor:pointer;border:none;padding:0;}
+.hs-dot.on{background:white;width:18px;}
+
+@media(max-width:480px){
+  .hero-stack{padding:20px 12px 26px;}
+  .hs-back{top:22px;left:0;right:76%;bottom:24px;}
+  .hs-mid{top:22px;left:76%;right:0;bottom:24px;}
+  .hs-front{top:6px;left:6%;right:6%;bottom:6px;}
+}
+
+/* 資訊卡：玻璃擬態 */
+.info-card{background:rgba(255,255,255,.45);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.55);border-radius:20px;padding:20px 18px;text-align:center;box-shadow:0 6px 24px rgba(200,90,50,.08);margin-bottom:14px;}
+.info-pre{font-size:9px;color:var(--gold);letter-spacing:6px;font-weight:600;}
+.info-date{font-family:var(--font-name);font-size:clamp(26px,7.5vw,32px);font-weight:700;background:linear-gradient(135deg,#c45a30,var(--peach));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:4px;margin-top:4px;cursor:pointer;}
+.info-meta{font-family:var(--font-sans);font-size:11px;color:#8a6a5a;letter-spacing:3px;margin-top:3px;font-weight:500;}
+.info-times{display:flex;gap:10px;justify-content:center;margin-top:14px;}
+.info-pill{background:linear-gradient(145deg,rgba(245,200,66,.12),rgba(249,123,90,.06));padding:8px 18px;border-radius:10px;border:1px solid rgba(245,200,66,.25);}
+.info-pill-time{font-family:var(--font-name);font-size:15px;font-weight:700;color:#b8842a;letter-spacing:1px;}
+.info-pill-lbl{font-size:9px;color:#8a6a3a;letter-spacing:2px;margin-top:1px;font-weight:500;}
+.info-arrow{font-size:14px;color:rgba(245,200,66,.5);align-self:center;}
+.info-div{height:1px;background:linear-gradient(90deg,transparent,rgba(249,180,150,.3),transparent);margin:14px 0;}
+.info-venue{font-family:var(--font-name);font-size:clamp(15px,4.2vw,18px);font-weight:700;color:#7a3520;letter-spacing:1px;cursor:pointer;}
+.info-venue:hover{text-decoration:underline;text-decoration-color:var(--peach);text-underline-offset:4px;}
+.info-venue-en{font-family:var(--font-script);font-size:10px;color:#a08060;letter-spacing:2px;font-style:italic;font-weight:600;margin-top:2px;}
+.info-hall{font-family:var(--font-sans);font-size:11px;color:#5a3a2a;letter-spacing:1px;margin-top:4px;font-weight:500;}
+.info-addr{font-family:var(--font-sans);font-size:10px;color:var(--muted);letter-spacing:1px;margin-top:2px;}
+.info-addr a{color:#b8842a;text-decoration:underline;text-underline-offset:2px;font-weight:500;}
+.info-cd{margin-top:14px;padding-top:14px;border-top:1px solid rgba(249,180,150,.2);}
+.info-cd-lbl{font-family:var(--font-sans);font-size:9px;color:#8a6a5a;letter-spacing:4px;font-weight:600;margin-bottom:8px;}
+.cd-val{font-family:var(--font-name);font-size:clamp(18px,5vw,22px);font-weight:700;background:linear-gradient(135deg,var(--peach),var(--coral));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-variant-numeric:tabular-nums;}
+.cd-lbl{font-size:8px;color:#8a6a5a;letter-spacing:2px;margin-top:1px;}
+.cd-sep{font-family:var(--font-name);font-size:clamp(12px,3.5vw,16px);color:rgba(249,180,150,.25);line-height:1.8;}
+/* 婚禮時間彈窗 */
+#date-modal{display:none;position:fixed;inset:0;z-index:100;background:rgba(60,30,16,.55);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:16px;}
+#date-modal.on{display:flex;}
+.dm-card{background:linear-gradient(170deg,#fff8f3,#fef0e5);border-radius:22px;border:1px solid var(--border);box-shadow:0 24px 50px rgba(60,30,16,.3);width:100%;max-width:380px;padding:32px 28px 28px;position:relative;text-align:center;}
+.dm-close{position:absolute;top:12px;right:14px;background:rgba(255,255,255,.7);border:1px solid var(--border);border-radius:50%;width:32px;height:32px;font-size:16px;cursor:pointer;color:var(--muted);display:flex;align-items:center;justify-content:center;}
+.dm-icon{font-size:36px;margin-bottom:10px;}
+.dm-pre{font-family:var(--font-script);font-size:13px;letter-spacing:4px;color:var(--coral);font-style:italic;font-weight:600;}
+.dm-title{font-family:var(--font-name);font-size:22px;font-weight:700;color:var(--deep);letter-spacing:4px;margin-top:4px;}
+.dm-date{font-family:var(--font-name);font-size:clamp(26px,7vw,32px);font-weight:700;color:var(--ink);letter-spacing:4px;margin-top:22px;}
+.dm-week{font-family:var(--font-sans);font-size:14px;color:var(--muted);letter-spacing:3px;margin-top:6px;}
+.dm-times{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:24px;}
+.dm-t{background:rgba(255,255,255,.85);border:1.5px solid var(--border);border-radius:14px;padding:16px 20px;min-width:110px;}
+.dm-t-time{font-family:var(--font-script);font-size:clamp(22px,6vw,28px);font-weight:700;color:var(--peach);letter-spacing:1px;}
+.dm-t-lbl{font-family:var(--font-sans);font-size:11px;color:#6b3a20;letter-spacing:2px;margin-top:4px;font-weight:600;}
+.dm-arrow{font-size:18px;color:var(--coral);}
+.dm-tip{margin-top:20px;padding:10px 16px;background:rgba(245,200,66,.18);border-radius:10px;font-family:var(--font-sans);font-size:12px;color:#6b3a20;letter-spacing:1px;display:inline-flex;align-items:center;gap:6px;}
+
+/* 酒店資訊彈窗 */
+#venue-modal{display:none;position:fixed;inset:0;z-index:100;background:rgba(60,30,16,.55);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:16px;}
+#venue-modal.on{display:flex;}
+.vm-card{background:white;border-radius:18px;border:1px solid var(--border);box-shadow:0 24px 50px rgba(60,30,16,.3);width:100%;max-width:420px;max-height:85vh;overflow-y:auto;padding:28px 22px 24px;position:relative;}
+.vm-close{position:absolute;top:12px;right:14px;background:none;border:none;font-size:18px;cursor:pointer;color:var(--muted);padding:4px 8px;}
+.vm-title{font-family:var(--font-name);font-size:20px;font-weight:700;color:var(--deep);letter-spacing:2px;margin-bottom:4px;}
+.vm-en{font-family:var(--font-script);font-size:12px;color:var(--coral);letter-spacing:2px;font-style:italic;font-weight:600;}
+.vm-div{height:1px;background:var(--border);margin:16px 0;}
+.vm-sec{margin-bottom:16px;}
+.vm-sec-t{font-size:13px;font-weight:700;color:var(--ink);letter-spacing:2px;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.vm-row{font-size:12.5px;color:#5a3020;line-height:2;letter-spacing:.5px;}
+.vm-row small{font-size:11px;color:var(--muted);margin-left:4px;}
+/* ═══ 新人介紹區（雜誌人物頁）═══ */
+.couple-wrap{margin:10px 0 30px;}
+.couple-pre{font-size:10px;color:var(--gold);letter-spacing:5px;text-align:center;font-weight:600;margin-bottom:14px;}
+.couple-row{display:flex;gap:10px;justify-content:center;}
+.couple-card{flex:1;max-width:140px;text-align:center;}
+.couple-photo{width:100%;aspect-ratio:1/1;border-radius:12px;background-size:cover;background-position:center;background-color:#f5ede5;border:3px solid white;box-shadow:0 6px 16px rgba(200,90,50,.15);margin-bottom:8px;cursor:pointer;}
+.couple-photo.dog{aspect-ratio:1/1;border-radius:50%;}
+.couple-name{font-family:var(--font-name);font-size:clamp(14px,4vw,16px);color:var(--deep);letter-spacing:2px;font-weight:700;}
+.couple-en{font-family:var(--font-script);font-size:10px;color:var(--coral);letter-spacing:1px;font-style:italic;margin-top:2px;}
+.couple-bio{font-family:var(--font-sans);font-size:9px;color:var(--muted);margin-top:5px;line-height:1.7;letter-spacing:.5px;}
+#viewer{position:fixed;inset:0;z-index:200;background:rgba(30,12,5,.92);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:16px;cursor:pointer;}
+#viewer.on{display:flex;}
+#viewer img{max-width:92vw;max-height:82vh;border-radius:10px;border:4px solid white;box-shadow:0 20px 50px rgba(0,0,0,.5);object-fit:contain;cursor:default;}
+.v-close{position:absolute;top:16px;right:16px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.15);color:white;border:none;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.v-cap{position:absolute;bottom:24px;left:0;right:0;text-align:center;font-family:var(--font-calli);font-size:24px;color:white;letter-spacing:6px;text-shadow:0 2px 12px rgba(0,0,0,.6);pointer-events:none;}
+.story-hdr{text-align:center;margin:40px 0 24px;}
+.story-pre{font-family:var(--font-script);font-size:24px;letter-spacing:3px;color:var(--peach);font-style:italic;}
+.story-zh{font-family:var(--font-sans);font-size:11px;letter-spacing:6px;color:var(--muted);margin-top:6px;font-weight:500;}
+
+/* 進場動畫（IntersectionObserver 觸發）*/
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .8s ease,transform .8s ease;}
+.reveal.in{opacity:1;transform:translateY(0);}
+.reveal.from-l{transform:translateX(-32px);}
+.reveal.from-r{transform:translateX(32px);}
+.reveal.from-l.in,.reveal.from-r.in{transform:translateX(0);}
+
+/* — 版型一：時間軸 — */
+.tl-wrap{position:relative;padding:10px 0 30px;}
+.tl-line{position:absolute;left:50%;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,var(--coral),rgba(249,180,150,.25));transform:translateX(-1px);}
+.tl-row{display:flex;align-items:center;margin-bottom:44px;position:relative;}
+.tl-row:last-child{margin-bottom:0;}
+.tl-side{width:calc(50% - 16px);display:flex;}
+.tl-side.ph-l{justify-content:flex-end;}
+.tl-center{width:32px;display:flex;justify-content:center;flex-shrink:0;}
+.tl-dot{width:12px;height:12px;border-radius:50%;background:var(--deep);border:3px solid white;box-shadow:0 0 0 2px rgba(249,123,90,.3),0 0 10px rgba(255,207,122,.8);z-index:2;animation:twinkle 3.6s ease-in-out infinite;}
+.tl-photo{width:min(220px,90%);aspect-ratio:3/4;border-radius:12px;background-size:cover;background-position:center;border:5px solid white;box-shadow:0 10px 28px rgba(200,90,50,.25);background-color:#f5ede5;cursor:pointer;transition:transform .25s ease;}
+.tl-photo:hover{transform:scale(1.03);}
+.tl-txt{width:calc(50% - 16px);padding:0 12px;}
+.tl-txt.al-r{text-align:right;}
+.tl-cap{font-family:var(--font-calli);font-size:clamp(26px,7vw,34px);color:var(--deep);letter-spacing:4px;line-height:1.2;}
+
+/* — 版型二：瀑布流 — */
+.ms-wrap{column-count:2;column-gap:12px;padding-bottom:10px;}
+.ms-item{break-inside:avoid;margin-bottom:12px;border:5px solid white;border-radius:6px;box-shadow:0 6px 18px rgba(200,90,50,.18);overflow:hidden;background:#f5ede5;cursor:pointer;transition:transform .25s ease;}
+.ms-item:nth-child(odd){transform:rotate(-1.5deg);}
+.ms-item:nth-child(even){transform:rotate(1.5deg);}
+.ms-item img{width:100%;display:block;}
+.ms-cap{padding:8px 6px 4px;text-align:center;font-family:var(--font-calli);font-size:16px;color:var(--deep);letter-spacing:2px;background:white;}
+
+/* ═══ 給賓客的話 ═══ */
+.msg{text-align:center;padding:34px 24px;font-family:var(--font-han, 'Noto Serif TC', serif);}
+.msg-txt{font-family:'Noto Serif TC',serif;font-size:14px;color:#5a3020;letter-spacing:2px;line-height:2.4;font-weight:500;}
+.msg-deco{display:flex;align-items:center;justify-content:center;gap:12px;margin:0 auto 18px;width:180px;}
+.msg-deco::before,.msg-deco::after{content:'';flex:1;height:1px;background:linear-gradient(to right,transparent,rgba(249,180,150,.6));}
+.msg-deco::after{background:linear-gradient(to left,transparent,rgba(249,180,150,.6));}
+.msg-deco span{font-size:14px;color:var(--coral);}
+.story-sub{text-align:center;font-family:'Noto Serif TC',serif;font-size:12.5px;color:var(--muted);letter-spacing:2px;line-height:2;margin:-12px 0 26px;}
+
+/* 隱藏後台入口 */
+.admin-hint{text-align:center;margin-top:36px;}
+.admin-hint button{background:none;border:none;font-family:var(--font-sans);font-size:11px;letter-spacing:4px;color:var(--muted);cursor:pointer;padding:8px 16px;opacity:.6;transition:opacity .3s;}
+.admin-hint button:hover{opacity:1;color:var(--peach);}
+
+/* ═══ 音樂 FAB 浮動鈕 ═══ */
+#music-fab{position:fixed;bottom:20px;right:20px;z-index:999;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--peach),var(--deep));color:white;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 6px 20px rgba(200,70,30,.4),0 0 0 4px rgba(249,180,150,.35);transition:all .3s;-webkit-tap-highlight-color:transparent;}
+#music-fab:hover{transform:scale(1.08);}
+#music-fab.playing{animation:musicPulse 2.6s ease-in-out infinite;}
+@keyframes musicPulse{0%,100%{box-shadow:0 4px 16px rgba(200,70,30,.4),0 0 0 4px rgba(249,180,150,.35)}50%{box-shadow:0 4px 24px rgba(200,70,30,.7),0 0 0 10px rgba(249,123,90,.12)}}
+#music-fab.muted{opacity:.5;filter:grayscale(.5);}
+
+/* ═══ Admin 後台 ═══ */
+#admin{background:linear-gradient(160deg,#fff8f3,#fef0e5);padding:40px 16px;}
+.adm-page{max-width:720px;margin:0 auto;position:relative;z-index:1;}
+.adm-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;}
+.adm-title-en{font-family:var(--font-script);letter-spacing:6px;color:var(--gold);font-size:11px;text-transform:uppercase;font-weight:500;}
+.adm-title{font-family:var(--font-name);font-size:22px;color:var(--ink);letter-spacing:3px;font-weight:700;margin-top:2px;}
+.adm-out{background:white;border:1px solid var(--border);border-radius:50px;padding:8px 16px;color:var(--ink);font-family:var(--font-sans);cursor:pointer;font-size:12px;letter-spacing:2px;display:inline-flex;align-items:center;gap:6px;}
+
+/* Login */
+#login-ov{position:fixed;inset:0;z-index:100;background:rgba(60,30,16,.55);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:20px;}
+#login-ov.on{display:flex;}
+.login-card{background:white;padding:36px 30px;border-radius:18px;border:1px solid var(--border);box-shadow:0 30px 60px rgba(60,30,16,.3);width:100%;max-width:340px;}
+.login-hdr{display:flex;align-items:center;gap:10px;margin-bottom:24px;color:var(--peach);}
+.login-hdr .em{font-size:22px;}
+.login-hdr .txt{font-family:var(--font-name);letter-spacing:3px;font-size:16px;font-weight:700;color:var(--ink);}
+.login-inp{width:100%;padding:13px 14px;font-size:14px;border:1.5px solid var(--border);border-radius:10px;background:var(--cream);font-family:var(--font-sans);outline:none;letter-spacing:1px;}
+.login-inp:focus{border-color:var(--peach);}
+.login-err{color:var(--deep);font-size:12px;margin-top:8px;font-family:var(--font-sans);min-height:16px;}
+.login-btn{width:100%;margin-top:12px;padding:13px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--peach),var(--deep));color:white;font-family:var(--font-sans);letter-spacing:4px;font-size:14px;cursor:pointer;font-weight:500;}
+
+/* 上傳區 */
+.upload-zone{padding:40px 20px;border:2px dashed rgba(249,123,90,.4);border-radius:14px;background:rgba(255,255,255,.6);text-align:center;cursor:pointer;transition:all .25s;margin-bottom:24px;}
+.upload-zone:hover{background:rgba(255,240,220,.85);border-color:var(--peach);}
+.upload-em{font-size:32px;margin-bottom:8px;}
+.upload-lbl{font-size:15px;letter-spacing:2px;color:var(--ink);font-weight:500;}
+.upload-sub{font-size:12px;color:var(--muted);margin-top:4px;letter-spacing:1px;}
+
+/* 照片列表 */
+.p-list{display:flex;flex-direction:column;gap:10px;}
+.p-row{display:flex;align-items:center;gap:12px;padding:12px;background:rgba(255,255,255,.9);border:1px solid rgba(249,180,150,.3);border-radius:12px;transition:transform .15s,box-shadow .15s;cursor:default;}
+.p-row.dragging{opacity:.5;transform:scale(.97);box-shadow:0 0 0 2px var(--peach);}
+.p-row.drag-over{border-top:3px solid var(--peach);padding-top:9px;}
+.p-handle{cursor:grab;color:var(--muted);font-size:18px;padding:4px 6px;touch-action:none;user-select:none;display:flex;align-items:center;}
+.p-handle:active{cursor:grabbing;color:var(--peach);}
+.p-thumb{width:60px;height:76px;object-fit:cover;border-radius:6px;flex-shrink:0;background:var(--cream);}
+.p-info{flex:1;display:flex;flex-direction:column;gap:4px;min-width:0;}
+.p-idx{font-family:var(--font-script);font-size:11px;color:var(--muted);letter-spacing:2px;font-style:italic;}
+.p-cap{width:100%;border:none;border-bottom:1px solid rgba(249,180,150,.4);background:transparent;padding:4px 0;font-family:var(--font-calli);font-size:18px;color:var(--peach);outline:none;}
+.p-cap:focus{border-bottom-color:var(--peach);}
+.p-save{padding:5px 14px;background:linear-gradient(135deg,var(--peach),var(--deep));color:white;border:none;border-radius:6px;font-family:var(--font-sans);font-size:11px;letter-spacing:1px;cursor:pointer;margin-top:6px;transition:all .2s;}
+.p-save:hover{transform:scale(1.03);}
+.p-saved{display:inline-block;font-size:11px;color:var(--deep);margin-left:8px;letter-spacing:1px;opacity:0;transition:opacity .3s;}
+.p-saved.show{opacity:1;}
+.p-del{background:none;border:none;color:rgba(0,0,0,.35);cursor:pointer;padding:8px;font-size:16px;flex-shrink:0;transition:color .2s;}
+.p-del:hover{color:var(--deep);}
+
+.p-empty{text-align:center;padding:40px 20px;color:var(--muted);font-family:var(--font-sans);}
+.p-empty-em{font-size:36px;opacity:.4;margin-bottom:8px;}
+
+/* 後台分類 Tab */
+.sec-tab{padding:8px 16px;border:1.5px solid var(--border);border-radius:50px;background:white;font-family:var(--font-sans);font-size:12px;letter-spacing:1px;color:var(--ink);cursor:pointer;transition:all .25s;display:inline-flex;align-items:center;gap:6px;}
+.sec-tab.on{background:linear-gradient(135deg,var(--peach),var(--deep));color:white;border-color:transparent;}
+.sec-cnt{font-size:10px;background:rgba(0,0,0,.1);padding:1px 6px;border-radius:50px;font-weight:600;}
+.sec-tab.on .sec-cnt{background:rgba(255,255,255,.3);}
+
+/* 照片列表項：移區按鈕 */
+.p-move-sec{display:inline-flex;gap:4px;margin-top:4px;}
+.p-sec-btn{padding:3px 8px;border-radius:50px;border:1px solid var(--border);background:white;font-size:10px;cursor:pointer;letter-spacing:1px;color:var(--muted);transition:all .2s;}
+.p-sec-btn:hover{border-color:var(--peach);color:var(--peach);}
+.p-sec-btn.cur{background:var(--peach);color:white;border-color:var(--peach);}
+.hint-box code{background:rgba(0,0,0,.05);padding:2px 6px;border-radius:4px;font-family:monospace;font-size:11px;}
+
+/* 後台設定表單 */
+.sec-title{font-family:var(--font-name);font-size:16px;font-weight:700;color:var(--ink);letter-spacing:2px;margin:28px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.field{margin-bottom:12px;}
+.field label{display:block;font-size:12px;color:var(--muted);letter-spacing:1px;margin-bottom:4px;font-weight:500;}
+.field input,.field textarea{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;background:white;font-family:var(--font-sans);font-size:13px;color:var(--ink);outline:none;letter-spacing:.5px;}
+.field input:focus,.field textarea:focus{border-color:var(--peach);}
+.field textarea{resize:vertical;min-height:70px;line-height:1.8;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.save-btn{display:block;margin:20px auto 0;padding:12px 40px;background:linear-gradient(135deg,var(--peach),var(--deep));color:white;border:none;border-radius:50px;font-family:var(--font-sans);font-size:14px;letter-spacing:4px;cursor:pointer;box-shadow:0 6px 18px rgba(200,70,30,.3);}
+.save-ok{text-align:center;font-size:12px;color:var(--deep);margin-top:8px;min-height:18px;letter-spacing:1px;}
+</style>
+</head>
+<body>
+
+<!-- ═══ 燈設計：三層堆疊 ═══ -->
+<div class="candle-glow"></div>
+<div class="firefly-layer" id="fireflies"></div>
+<svg class="string-lights" viewBox="0 0 1400 150" preserveAspectRatio="none">
+  <path d="M 0 25 Q 350 105 700 75 T 1400 35" fill="none" stroke="#7a5a48" stroke-width="1.5" opacity=".55"/>
+  <g id="bulbs"></g>
+</svg>
+
+<!-- ═══ Envelope ═══ -->
+<div class="stage on" id="env">
+  <div class="env-scene" onclick="openEnv()">
+    <div class="env-box">
+      <div class="env-body"></div>
+      <div class="env-db"></div>
+      <div class="env-flap" id="flap"></div>
+      <div class="env-seal">囍</div>
+      <div class="env-names">莊勛凱 ♡ 楊恩懿</div>
+    </div>
+  </div>
+  <div class="hint">輕觸 開啟喜帖</div>
+</div>
+
+<!-- ═══ Main 主頁 ═══ -->
+<div class="stage" id="main">
+  <div class="page">
+    <div class="hero-txt">
+      <div class="pre">We're getting married</div>
+      <div class="pre-zh">SAVE THE DATE</div>
+      <div class="names">莊勛凱<span class="amp">&amp;</span>楊恩懿</div>
+      <div class="names-en">Hsun-Kai &amp; En-Yi</div>
+      <div id="date-line" style="margin-top:18px;font-family:var(--font-sans);font-size:13px;letter-spacing:4px;color:#6b3a20;font-weight:500;">
+        2026.10.25 <span style="color:var(--coral);padding:0 4px;">·</span> 我們結婚了
+      </div>
+    </div>
+
+    <div class="icard">
+      <div class="hero-stack">
+        <div class="hs-layer hs-back" id="hs-back"></div>
+        <div class="hs-layer hs-mid" id="hs-mid"></div>
+        <div class="hs-layer hs-front">
+          <div class="hs-slide on" id="s0"><img id="s0-img" src="" alt="" style="animation:kb-a 8s ease-in-out infinite alternate;"></div>
+          <div class="hs-slide" id="s1"><img id="s1-img" src="" alt="" style="animation:kb-b 8s ease-in-out infinite alternate;"></div>
+          <div class="hs-slide" id="s2"><img id="s2-img" src="" alt="" style="animation:kb-c 8s ease-in-out infinite alternate;"></div>
+        </div>
+        <div class="hs-dots" id="dots">
+          <button class="hs-dot on" onclick="setSlide(0)"></button>
+          <button class="hs-dot" onclick="setSlide(1)"></button>
+          <button class="hs-dot" onclick="setSlide(2)"></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-pre">SAVE THE DATE</div>
+      <div class="info-date" onclick="document.getElementById('date-modal').classList.add('on')">10 · 25</div>
+      <div class="info-meta">2026 星期日</div>
+      <div class="info-times">
+        <div class="info-pill">
+          <div class="info-pill-time" id="info-t1">18:00</div>
+          <div class="info-pill-lbl">迎賓</div>
+        </div>
+        <div class="info-arrow">→</div>
+        <div class="info-pill">
+          <div class="info-pill-time" id="info-t2">18:30</div>
+          <div class="info-pill-lbl">開席</div>
+        </div>
+      </div>
+      <div class="info-div"></div>
+      <div class="info-venue" onclick="document.getElementById('venue-modal').classList.add('on')">茹曦酒店</div>
+      <div class="info-venue-en">ILLUME TAIPEI</div>
+      <div class="info-hall">5F 斯賓諾莎廳</div>
+      <div class="info-addr"><a href="https://maps.google.com/?q=25.0520,121.5497&z=17" target="_blank">查看地圖</a></div>
+      <div class="info-cd">
+        <div class="info-cd-lbl">距離婚禮</div>
+        <div style="display:flex;justify-content:center;align-items:flex-start;gap:clamp(6px,2.5vw,14px);">
+          <div><div class="cd-val" id="cd-d">--</div><div class="cd-lbl">天</div></div>
+          <div class="cd-sep">:</div>
+          <div><div class="cd-val" id="cd-h">--</div><div class="cd-lbl">時</div></div>
+          <div class="cd-sep">:</div>
+          <div><div class="cd-val" id="cd-m">--</div><div class="cd-lbl">分</div></div>
+          <div class="cd-sep">:</div>
+          <div><div class="cd-val" id="cd-s">--</div><div class="cd-lbl">秒</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="msg">
+      <div class="msg-deco"><span>❀</span></div>
+      <div class="msg-txt" id="invite-msg">
+        我們決定攜手走進人生的下一章<br>
+        誠摯邀請您蒞臨我們的婚禮<br>
+        見證這份幸福 與我們共享喜悅
+      </div>
+    </div>
+
+    <div class="story-hdr">
+      <div class="story-pre">Our Story</div>
+      <div class="story-zh">我們的故事</div>
+    </div>
+    <div class="story-sub" id="story-intro">從相遇到相守，謝謝你走進我的生命</div>
+    <div id="story"></div>
+
+    <div class="msg" style="padding-top:44px;">
+      <img id="chibi-bottom" src="" alt="" style="width:min(160px,40vw);display:none;margin:0 auto 20px;filter:drop-shadow(0 6px 16px rgba(200,90,50,.18));">
+      <div class="msg-deco"><span onclick="secretTap()" style="cursor:default;user-select:none;">囍</span></div>
+      <div class="msg-txt" id="closing-msg">
+        感謝您一路以來的關心與祝福<br>
+        您的蒞臨 是我們最大的榮幸<br>
+        期待在最美好的日子與您相見
+      </div>
+      <div id="closing-sign" style="margin-top:22px;font-family:var(--font-script);font-style:italic;font-size:15px;letter-spacing:3px;color:var(--coral);">With love, 勛凱 &amp; 恩懿</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 照片放大檢視 ═══ -->
+<div id="viewer" onclick="if(event.target===this)closeViewer()">
+  <button class="v-close" onclick="closeViewer()">✕</button>
+  <img id="v-img" src="" alt="">
+  <div class="v-cap" id="v-cap"></div>
+</div>
+
+<!-- ═══ 婚禮時間彈窗 ═══ -->
+<div id="date-modal" onclick="if(event.target===this)this.classList.remove('on')">
+  <div class="dm-card">
+    <button class="dm-close" onclick="document.getElementById('date-modal').classList.remove('on')">✕</button>
+    <div class="dm-icon">📅</div>
+    <div class="dm-pre">DATE &amp; TIME</div>
+    <div class="dm-title">婚禮時間</div>
+    <div class="dm-date">2026 年 10 月 25 日</div>
+    <div class="dm-week">星期日</div>
+    <div class="dm-times">
+      <div class="dm-t">
+        <div class="dm-t-time">18:00</div>
+        <div class="dm-t-lbl">迎賓入席</div>
+      </div>
+      <div class="dm-arrow">→</div>
+      <div class="dm-t">
+        <div class="dm-t-time">18:30</div>
+        <div class="dm-t-lbl">晚宴開席</div>
+      </div>
+    </div>
+    <div class="dm-tip">💡 建議提前 15 分鐘抵達，從容入席</div>
+  </div>
+</div>
+
+<!-- ═══ 酒店資訊彈窗 ═══ -->
+<div id="venue-modal" onclick="if(event.target===this)this.classList.remove('on')">
+  <div class="vm-card">
+    <button class="vm-close" onclick="document.getElementById('venue-modal').classList.remove('on')">✕</button>
+    <div class="vm-title">茹曦酒店</div>
+    <div class="vm-en">ILLUME TAIPEI</div>
+    <div class="vm-div"></div>
+
+    <div class="vm-sec">
+      <div class="vm-sec-t">🏛️ 婚宴地點</div>
+      <div class="vm-row">
+        5F 斯賓諾莎廳<br>
+        📍 10547 台北市松山區敦化北路 100 號<br>
+        📞 +886 2-2719-7199
+      </div>
+    </div>
+
+    <div class="vm-sec">
+      <div class="vm-sec-t">🚇 捷運 MRT</div>
+      <div class="vm-row">
+        松山新店線 / <strong>台北小巨蛋站</strong> <small>1 號出口</small><br>
+        → 步行至酒店約 5 分鐘<br><br>
+        文湖線 / <strong>南京復興站</strong> <small>6 號出口</small><br>
+        → 步行至酒店約 7 分鐘
+      </div>
+    </div>
+
+    <div class="vm-sec">
+      <div class="vm-sec-t">🚌 公車 Bus</div>
+      <div class="vm-row">
+        南京敦化路口（小巨蛋）<br>
+        棕 9、棕 10、紅 25、33、46、248、254、262 等<br>
+        → 步行至酒店約 5 分鐘
+      </div>
+    </div>
+
+    <div class="vm-sec">
+      <div class="vm-sec-t">🅿️ 停車場</div>
+      <div class="vm-row">
+        台北小巨蛋地下停車場<br>
+        微風南京 / 微風廣場地下停車場
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:18px;">
+      <button class="map-btn" onclick="window.open('https://maps.google.com/?q=25.0520,121.5497&z=17','_blank')">📍 開啟 Google 地圖</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ Admin 後台 ═══ -->
+<div class="stage" id="admin">
+  <div class="adm-page">
+    <div class="adm-hdr">
+      <div>
+        <div class="adm-title-en">ADMIN</div>
+        <div class="adm-title">後台管理</div>
+      </div>
+      <button class="adm-out" onclick="logout()">← 回喜帖</button>
+    </div>
+
+    <!-- ═══ 內容設定 ═══ -->
+    <div class="sec-title">💑 新人資訊</div>
+    <div class="field-row">
+      <div class="field"><label>新郎姓名</label><input id="cfg-groom"></div>
+      <div class="field"><label>新娘姓名</label><input id="cfg-bride"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>新郎英文名</label><input id="cfg-groomEn"></div>
+      <div class="field"><label>新娘英文名</label><input id="cfg-brideEn"></div>
+    </div>
+
+    <div class="sec-title">📅 婚禮資訊</div>
+    <div class="field-row">
+      <div class="field"><label>日期（如 2026.10.25）</label><input id="cfg-date"></div>
+      <div class="field"><label>星期</label><input id="cfg-weekday"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>迎賓時間</label><input id="cfg-time1"></div>
+      <div class="field"><label>開席時間</label><input id="cfg-time2"></div>
+    </div>
+    <div class="field"><label>場地名稱</label><input id="cfg-venue"></div>
+    <div class="field-row">
+      <div class="field"><label>場地英文名</label><input id="cfg-venueEn"></div>
+      <div class="field"><label>廳別</label><input id="cfg-hall"></div>
+    </div>
+    <div class="field"><label>地址</label><input id="cfg-addr"></div>
+
+    <div class="sec-title">💌 給賓客的話</div>
+    <div class="field"><label>邀請語（每行一段，用 Enter 換行）</label><textarea id="cfg-invite" rows="3"></textarea></div>
+    <div class="field"><label>故事引言</label><input id="cfg-storyIntro"></div>
+    <div class="field"><label>結尾感謝語（每行一段）</label><textarea id="cfg-closing" rows="3"></textarea></div>
+    <div class="field"><label>結尾署名</label><input id="cfg-sign"></div>
+
+    <div class="sec-title">🎨 Q版插畫</div>
+    <div style="font-size:11.5px;color:var(--muted);margin-bottom:10px;letter-spacing:.5px;line-height:1.8;">出現在結尾感謝語上方，溫暖收尾</div>
+    <div style="display:flex;align-items:center;gap:14px;padding:14px;background:rgba(255,255,255,.9);border:1px solid rgba(249,180,150,.3);border-radius:12px;">
+      <img id="chibi-preview" src="" style="width:80px;height:80px;object-fit:contain;border-radius:8px;background:rgba(249,180,150,.1);display:none;">
+      <div id="chibi-empty" style="width:80px;height:80px;border-radius:8px;background:rgba(249,180,150,.1);display:flex;align-items:center;justify-content:center;font-size:28px;color:rgba(249,180,150,.5);">🎨</div>
+      <div style="flex:1;">
+        <button onclick="document.getElementById('chibi-input').click()" style="padding:8px 18px;background:linear-gradient(135deg,var(--peach),var(--deep));color:white;border:none;border-radius:8px;font-family:var(--font-sans);font-size:12px;letter-spacing:2px;cursor:pointer;">上傳插畫</button>
+        <button id="chibi-del-btn" onclick="deleteChibi()" style="display:none;margin-left:8px;padding:8px 14px;background:none;border:1px solid rgba(249,180,150,.4);border-radius:8px;font-size:12px;cursor:pointer;color:var(--muted);">移除</button>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px;">建議用去背的 PNG 圖</div>
+      </div>
+      <input type="file" id="chibi-input" accept="image/*" style="display:none" onchange="uploadChibi(event)">
+    </div>
+
+    <div class="sec-title">🎵 背景音樂</div>
+    <div class="field"><label>音樂 URL（MP3 連結）</label><input id="cfg-music"></div>
+
+    <div class="sec-title">⚙️ 主視覺設定</div>
+    <div class="field"><label>輪播速度（秒）</label><input id="cfg-heroSpeed" type="number" step="0.5" min="1" max="20"></div>
+
+    <button class="save-btn" onclick="saveConfig()">儲存設定</button>
+    <div class="save-ok" id="save-ok"></div>
+
+    <div class="sec-title">🔒 修改後台密碼</div>
+    <div class="field"><label>新密碼</label><input type="password" id="new-pwd" placeholder="輸入新密碼"></div>
+    <div class="field"><label>再次輸入新密碼</label><input type="password" id="new-pwd2" placeholder="再次輸入確認"></div>
+    <button class="save-btn" onclick="changePwd()">更新密碼</button>
+    <div class="save-ok" id="pwd-ok"></div>
+
+    <!-- ═══ 照片管理 ═══ -->
+    <div class="sec-title">📸 照片管理</div>
+
+    <!-- 分類 Tab -->
+    <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;" id="sec-tabs">
+      <button class="sec-tab on" onclick="switchTab('hero')">🖼️ 主視覺 <span id="cnt-hero" class="sec-cnt">0</span></button>
+      <button class="sec-tab" onclick="switchTab('timeline')">📖 時間軸 <span id="cnt-timeline" class="sec-cnt">0</span></button>
+      <button class="sec-tab" onclick="switchTab('gallery')">🖼️ 花絮牆 <span id="cnt-gallery" class="sec-cnt">0</span></button>
+    </div>
+
+    <!-- Tab 說明 -->
+    <div id="tab-desc" style="font-size:11.5px;color:var(--muted);margin-bottom:12px;letter-spacing:.5px;line-height:1.7;padding:0 2px;"></div>
+
+    <!-- 上傳區（自動歸入當前 Tab 的區段）-->
+    <div class="upload-zone" onclick="document.getElementById('file-in').click()">
+      <div class="upload-em">📸</div>
+      <div class="upload-lbl">點擊上傳照片</div>
+      <div class="upload-sub" id="upload-hint">上傳後自動歸入「主視覺」</div>
+    </div>
+    <input type="file" id="file-in" accept="image/*" multiple style="display:none" onchange="uploadPhotos(event)">
+
+    <div class="p-list" id="p-list"></div>
+
+    <button class="save-btn" onclick="saveAllPhotos()" style="margin-top:16px;">更新照片</button>
+    <div class="save-ok" id="photo-save-ok"></div>
+
+    <div class="hint-box">
+      ✅ <strong>已連接 Firebase Firestore</strong>：照片儲存在雲端。上傳後自動壓縮，畫質 88%。
+    </div>
+  </div>
+</div>
+
+<!-- ═══ Login Overlay ═══ -->
+<div id="login-ov">
+  <div class="login-card">
+    <div class="login-hdr">
+      <span class="em">🔒</span>
+      <span class="txt">後台登入</span>
+    </div>
+    <input type="password" class="login-inp" id="pwd" placeholder="密碼" onkeydown="if(event.key==='Enter')login()">
+    <div class="login-err" id="err"></div>
+    <button class="login-btn" onclick="login()">登入</button>
+  </div>
+</div>
+
+<!-- ═══ 音樂 FAB ═══ -->
+<audio id="bgm" loop preload="metadata" src="https://cdn.pixabay.com/audio/2022/10/25/audio_31c3b8e8fa.mp3"></audio>
+<button id="music-fab" class="muted" onclick="toggleMusic()" title="播放/暫停音樂">🎵</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-app-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-firestore-compat.min.js"></script>
+<script>
+// ═══ Firebase 初始化（離線時自動降級）═══
+var db = null;
+try{
+  firebase.initializeApp({
+    apiKey: "AIzaSyA_jhl1EFjf72jwO8JMx4BY6-lBLgKGkys",
+    authDomain: "wedding-einvitation-363b3.firebaseapp.com",
+    projectId: "wedding-einvitation-363b3",
+    storageBucket: "wedding-einvitation-363b3.firebasestorage.app",
+    messagingSenderId: "357486976067",
+    appId: "1:357486976067:web:89ef449181ef6e8246c8f6"
+  });
+  db = firebase.firestore();
+}catch(e){ console.warn('Firebase 未載入，使用離線模式'); }
+
+// 安全的 Firestore 操作（db 不存在時不報錯）
+function fbSet(path, data){ if(db) return db.doc(path).set(data).catch(()=>{}); }
+function fbUpdate(path, data){ if(db) return db.doc(path).update(data).catch(()=>{}); }
+function fbDelete(path){ if(db) return db.doc(path).delete().catch(()=>{}); }
+const COL = 'invitation_photos';
+const CFG_PATH = 'invitation_config/main';
+
+// ═══ 設定 ═══
+function getPwd(){
+  try{ return localStorage.getItem('wedding_pwd') || 'admin2026'; }catch(e){ return 'admin2026'; }
+}
+const DEFAULT_PHOTOS = [
+  {id:'d1', url:'https://images.unsplash.com/photo-1519741497674-611481863552?w=900&h=1200&fit=crop', caption:'主視覺', section:'hero'},
+  {id:'d2', url:'https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=900&h=1200&fit=crop', caption:'主視覺', section:'hero'},
+  {id:'d3', url:'https://images.unsplash.com/photo-1521543298578-0e0bcaee14b1?w=900&h=1200&fit=crop', caption:'主視覺', section:'hero'},
+  {id:'d4', url:'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=900&h=1200&fit=crop', caption:'初見', section:'timeline'},
+  {id:'d5', url:'https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=900&h=700&fit=crop', caption:'相知', section:'timeline'},
+  {id:'d6', url:'https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=900&h=1300&fit=crop', caption:'相守', section:'timeline'},
+  {id:'d7', url:'https://images.unsplash.com/photo-1460364157752-926555421a7e?w=900&h=800&fit=crop', caption:'花絮', section:'gallery'},
+  {id:'d8', url:'https://images.unsplash.com/photo-1529634597503-139d3726fed5?w=900&h=900&fit=crop', caption:'日常', section:'gallery'},
+  {id:'d9', url:'https://images.unsplash.com/photo-1544078751-58fee2d8a03b?w=900&h=1100&fit=crop', caption:'旅行', section:'gallery'},
+];
+
+// ═══ Stage 切換 ═══
+function showStage(id){
+  document.querySelectorAll('.stage').forEach(s=>s.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+}
+function openEnv(){
+  document.getElementById('flap').classList.add('open');
+  setTimeout(()=>showStage('main'), 900);
+}
+
+// ═══ 螢火蟲產生器 ═══
+function makeFireflies(){
+  const layer = document.getElementById('fireflies');
+  for(let i=0; i<20; i++){
+    const f = document.createElement('span');
+    f.className = 'firefly';
+    const size = 3 + Math.random()*4;
+    f.style.left = (Math.random()*100) + '%';
+    f.style.width = f.style.height = size + 'px';
+    f.style.animationDuration = (14 + Math.random()*12) + 's';
+    f.style.animationDelay = (-Math.random()*20) + 's';
+    f.style.setProperty('--drift', ((Math.random()-.5)*40) + 'px');
+    layer.appendChild(f);
+  }
+}
+
+// ═══ 燈串產生器 ═══
+function makeBulbs(){
+  const g = document.getElementById('bulbs');
+  const N = 14;
+  for(let i=0; i<N; i++){
+    const t = i/(N-1);
+    const x = t*1400;
+    const y = 25*(1-t)*(1-t) + 105*(1-t)*t*0.85 + 75*t*t + (t<.5 ? t*30 : (1-t)*30);
+    const delay = (i*0.35).toFixed(2);
+    const svgNs = 'http://www.w3.org/2000/svg';
+    const grp = document.createElementNS(svgNs, 'g');
+    grp.setAttribute('class', 'bulb');
+    grp.style.animationDelay = delay + 's';
+    grp.innerHTML = `
+      <circle cx="${x}" cy="${y+18}" r="14" fill="#ffcf7a" opacity=".35"/>
+      <circle cx="${x}" cy="${y+18}" r="4.5" fill="#ffe4a8"/>
+      <circle cx="${x}" cy="${y+18}" r="2" fill="#fff5d9"/>
+      <line x1="${x}" y1="${y}" x2="${x}" y2="${y+13}" stroke="#7a5a48" stroke-width="1" opacity=".5"/>
+    `;
+    g.appendChild(grp);
+  }
+}
+
+// ═══ 照片管理（localStorage）═══
+function getPhotos(){
+  try{
+    const raw = localStorage.getItem('wedding_photos');
+    if(raw){ const a = JSON.parse(raw); if(Array.isArray(a) && a.length) return a; }
+  }catch(e){}
+  return [...DEFAULT_PHOTOS];
+}
+function savePhotos(arr){
+  try{
+    localStorage.setItem('wedding_photos', JSON.stringify(arr));
+  }catch(e){
+    alert('儲存失敗！localStorage 可能已滿。\n建議部署到 GitHub Pages 後用 Firestore 儲存。');
+    throw e;
+  }
+  refreshMainPhotos();
+  renderAdminList();
+  renderStory();
+}
+
+// 壓縮圖片（PNG 保留透明背景）
+function compressImage(file){
+  return new Promise((resolve, reject)=>{
+    const isPng = file.type === 'image/png';
+    const img = new Image();
+    img.onload = ()=>{
+      try{
+        const MAX = 1400;
+        let w = img.width, h = img.height;
+        if(w > MAX){ h = h * MAX / w; w = MAX; }
+        if(h > MAX){ w = w * MAX / h; h = MAX; }
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        const ctx = c.getContext('2d');
+        if(!isPng){ ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h); }
+        ctx.drawImage(img, 0, 0, w, h);
+        URL.revokeObjectURL(img.src);
+        resolve(isPng ? c.toDataURL('image/png') : c.toDataURL('image/jpeg', 0.88));
+      }catch(err){ reject(err); }
+    };
+    img.onerror = ()=>{ URL.revokeObjectURL(img.src); reject(new Error('圖片格式無法讀取')); };
+    img.src = URL.createObjectURL(file);
+  });
+}
+async function uploadPhotos(e){
+  const files = Array.from(e.target.files || []);
+  if(!files.length) return;
+  const arr = getPhotos();
+  let count = 0;
+  for(const file of files){
+    try{
+      const compressed = await compressImage(file);
+      if(!compressed){ alert('圖片「'+file.name+'」讀取失敗'); continue; }
+      arr.push({
+        id: 'p_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),
+        url: compressed,
+        caption: file.name.replace(/\.[^.]+$/, '').slice(0, 12),
+        section: currentTab || 'gallery'
+      });
+      count++;
+    }catch(err){
+      alert('上傳「'+file.name+'」失敗：'+err.message);
+    }
+  }
+  if(count > 0){
+    try{
+      savePhotos(arr);
+      const ok = document.getElementById('photo-save-ok');
+      if(ok){ ok.textContent = '✅ 已上傳 '+count+' 張照片'; setTimeout(()=>ok.textContent='', 2500); }
+    }catch(err){
+      // savePhotos 已顯示錯誤訊息
+    }
+  }
+  e.target.value = '';
+}
+function delPhoto(id){
+  if(!confirm('確定刪除這張照片？')) return;
+  savePhotos(getPhotos().filter(p=>p.id!==id));
+}
+function movePhoto(id, dir){
+  const arr = getPhotos();
+  const i = arr.findIndex(p=>p.id===id);
+  const j = i + dir;
+  if(i<0 || j<0 || j>=arr.length) return;
+  [arr[i], arr[j]] = [arr[j], arr[i]];
+  savePhotos(arr);
+}
+function saveAllPhotos(){
+  // 從所有輸入框讀取最新標題
+  const arr = getPhotos();
+  arr.forEach(p=>{
+    const input = document.getElementById('cap-'+p.id);
+    if(input) p.caption = input.value;
+  });
+  // 存檔 + 更新前台
+  savePhotos(arr);
+  // 成功提示
+  const ok = document.getElementById('photo-save-ok');
+  if(ok){
+    ok.textContent = '✅ 照片已全部更新';
+    setTimeout(()=>ok.textContent = '', 2500);
+  }
+}
+function updateCaption(id, val){
+  const arr = getPhotos();
+  const p = arr.find(x=>x.id===id);
+  if(p){ p.caption = val; savePhotos(arr); }
+}
+function updateSection(id, val){
+  const arr = getPhotos();
+  const p = arr.find(x=>x.id===id);
+  if(p){ p.section = val; savePhotos(arr); }
+}
+
+// ═══ 前台照片：只取 section=hero 放三層堆疊 ═══
+function refreshMainPhotos(){
+  const heroPhotos = getPhotos().filter(p=>p.section === 'hero');
+  ['s0-img','s1-img','s2-img'].forEach((id, i)=>{
+    const el = document.getElementById(id);
+    if(el) el.src = heroPhotos[i] ? heroPhotos[i].url : '';
+    const slide = document.getElementById('s'+i);
+    if(slide) slide.style.display = heroPhotos[i] ? '' : 'none';
+  });
+  if(heroPhotos[0]) document.getElementById('hs-back').style.backgroundImage = `url('${heroPhotos[0].url}')`;
+  if(heroPhotos[1] || heroPhotos[0]) document.getElementById('hs-mid').style.backgroundImage = `url('${(heroPhotos[1]||heroPhotos[0]).url}')`;
+  document.querySelectorAll('.hs-dot').forEach((el,i)=>{
+    el.style.display = i < heroPhotos.length ? '' : 'none';
+  });
+}
+
+// 前台照片自動輪播
+let slideIdx = 0;
+let slideTimer = null;
+function setSlide(i){
+  slideIdx = i;
+  document.querySelectorAll('.hs-slide').forEach((el,idx)=> el.classList.toggle('on', idx === i));
+  document.querySelectorAll('.hs-dot').forEach((el,idx)=> el.classList.toggle('on', idx === i));
+}
+function startSlideshow(){
+  if(slideTimer) clearInterval(slideTimer);
+  const ms = (cfg.heroSpeed || 4.5) * 1000;
+  slideTimer = setInterval(()=>{
+    const total = Math.min(3, getPhotos().filter(p=>p.section==='hero').length);
+    if(total > 1) setSlide((slideIdx + 1) % total);
+  }, ms);
+}
+
+// ═══ 後台 render ═══
+// ═══ 後台分類 Tab ═══
+let currentTab = 'hero';
+const TAB_DESC = {
+  hero: '開頭 Ken Burns 輪播，建議 1–3 張最美的橫式照片',
+  timeline: '左右交錯講你們的故事，建議 4–6 張，每張配一個標題',
+  gallery: '瀑布流花絮牆，張數不限，生活照旅行照全丟這裡'
+};
+function switchTab(sec){
+  currentTab = sec;
+  document.querySelectorAll('.sec-tab').forEach(t=>{
+    t.classList.toggle('on', t.getAttribute('onclick').includes("'"+sec+"'"));
+  });
+  document.getElementById('tab-desc').textContent = TAB_DESC[sec];
+  document.getElementById('upload-hint').textContent = '上傳後自動歸入「' + SECTIONS[sec] + '」';
+  renderAdminList();
+}
+function moveToSection(id, sec){
+  updateSection(id, sec);
+  renderAdminList();
+}
+
+// ═══ 拖曳排序 ═══
+let dragId = null;
+function initDragSort(){
+  const rows = document.querySelectorAll('.p-row[draggable]');
+  rows.forEach(row=>{
+    row.addEventListener('dragstart', e=>{
+      dragId = row.dataset.id;
+      row.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    row.addEventListener('dragend', ()=>{
+      dragId = null;
+      row.classList.remove('dragging');
+      document.querySelectorAll('.p-row').forEach(r=>r.classList.remove('drag-over'));
+    });
+    row.addEventListener('dragover', e=>{
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      if(row.dataset.id !== dragId){
+        document.querySelectorAll('.p-row').forEach(r=>r.classList.remove('drag-over'));
+        row.classList.add('drag-over');
+      }
+    });
+    row.addEventListener('dragleave', ()=>{
+      row.classList.remove('drag-over');
+    });
+    row.addEventListener('drop', e=>{
+      e.preventDefault();
+      row.classList.remove('drag-over');
+      if(!dragId || row.dataset.id === dragId) return;
+      const targetId = row.dataset.id;
+      // 重新排序
+      const arr = getPhotos();
+      const filtered = arr.filter(p=>p.section === currentTab);
+      const fromIdx = filtered.findIndex(p=>p.id === dragId);
+      const toIdx = filtered.findIndex(p=>p.id === targetId);
+      if(fromIdx < 0 || toIdx < 0) return;
+      const [moved] = filtered.splice(fromIdx, 1);
+      filtered.splice(toIdx, 0, moved);
+      // 更新 order
+      const others = arr.filter(p=>p.section !== currentTab);
+      const reordered = [...others, ...filtered.map((p,i)=>({...p, order: i}))];
+      savePhotos(reordered);
+    });
+
+    // 觸控裝置支援
+    let touchY = 0, touchEl = null;
+    const handle = row.querySelector('.p-handle');
+    if(handle){
+      handle.addEventListener('touchstart', e=>{
+        touchEl = row;
+        touchY = e.touches[0].clientY;
+        row.classList.add('dragging');
+      }, {passive:true});
+    }
+  });
+}
+// 觸控拖曳全域事件
+document.addEventListener('touchmove', e=>{
+  if(!document.querySelector('.p-row.dragging')) return;
+  const touch = e.touches[0];
+  const target = document.elementFromPoint(touch.clientX, touch.clientY);
+  const row = target?.closest?.('.p-row');
+  document.querySelectorAll('.p-row').forEach(r=>r.classList.remove('drag-over'));
+  if(row && !row.classList.contains('dragging')) row.classList.add('drag-over');
+}, {passive:true});
+document.addEventListener('touchend', ()=>{
+  const dragging = document.querySelector('.p-row.dragging');
+  const over = document.querySelector('.p-row.drag-over');
+  if(dragging && over){
+    const fromId = dragging.dataset.id;
+    const toId = over.dataset.id;
+    const arr = getPhotos();
+    const filtered = arr.filter(p=>p.section === currentTab);
+    const fromIdx = filtered.findIndex(p=>p.id === fromId);
+    const toIdx = filtered.findIndex(p=>p.id === toId);
+    if(fromIdx >= 0 && toIdx >= 0){
+      const [moved] = filtered.splice(fromIdx, 1);
+      filtered.splice(toIdx, 0, moved);
+      const others = arr.filter(p=>p.section !== currentTab);
+      const reordered = [...others, ...filtered.map((p,i)=>({...p, order: i}))];
+      savePhotos(reordered);
+    }
+  }
+  document.querySelectorAll('.p-row').forEach(r=>{r.classList.remove('dragging');r.classList.remove('drag-over');});
+});
+
+function renderAdminList(){
+  const list = document.getElementById('p-list');
+  const all = getPhotos();
+  const arr = all.filter(p=>p.section === currentTab);
+  // 更新數量
+  ['hero','timeline','gallery'].forEach(s=>{
+    const el = document.getElementById('cnt-'+s);
+    if(el) el.textContent = all.filter(p=>p.section===s).length;
+  });
+  if(document.getElementById('tab-desc')) document.getElementById('tab-desc').textContent = TAB_DESC[currentTab] || '';
+  if(document.getElementById('upload-hint')) document.getElementById('upload-hint').textContent = '上傳後自動歸入「' + (SECTIONS[currentTab]||'') + '」';
+
+  if(arr.length === 0){
+    list.innerHTML = '<div class="p-empty"><div class="p-empty-em">📷</div><div>這個分類還沒有照片</div></div>';
+    return;
+  }
+  list.innerHTML = arr.map((p, idx)=>`
+    <div class="p-row" draggable="true" data-id="${p.id}" data-idx="${idx}">
+      <div class="p-handle" title="拖曳排序">☰</div>
+      <img class="p-thumb" src="${p.url}" alt="">
+      <div class="p-info">
+        <input class="p-cap" id="cap-${p.id}" value="${(p.caption||'').replace(/"/g,'&quot;')}" placeholder="輸入標題...">
+        <div class="p-move-sec">
+          ${Object.entries(SECTIONS).map(([k,v])=>`<button class="p-sec-btn ${p.section===k?'cur':''}" onclick="moveToSection('${p.id}','${k}')">${v}</button>`).join('')}
+        </div>
+      </div>
+      <button class="p-del" onclick="delPhoto('${p.id}')" title="刪除">🗑</button>
+    </div>
+  `).join('');
+  initDragSort();
+}
+
+// ═══ 照片故事區 ═══
+const SECTIONS = { hero:'🖼️ 主視覺', timeline:'📖 時間軸', gallery:'🖼️ 花絮牆' };
+
+function renderStory(){
+  const el = document.getElementById('story');
+  const arr = getPhotos();
+  const timeline = arr.filter(p=>p.section === 'timeline');
+  const gallery = arr.filter(p=>p.section === 'gallery');
+  let html = '';
+
+  if(timeline.length){
+    html += `<div class="tl-wrap"><div class="tl-line"></div>` + timeline.map((p,i)=>{
+      const photoL = i % 2 === 0;
+      const photo = `<div class="tl-side ${photoL?'ph-l':''}"><div class="tl-photo" style="background-image:url('${p.url}')" onclick="openViewer('${p.url}','${(p.caption||'').replace(/'/g,"\\'")}')"></div></div>`;
+      const dot = `<div class="tl-center"><div class="tl-dot"></div></div>`;
+      const txt = `<div class="tl-txt ${photoL?'':'al-r'}"><div class="tl-cap">${p.caption||''}</div></div>`;
+      return `<div class="tl-row reveal ${photoL?'from-l':'from-r'}">${photoL ? photo+dot+txt : txt+dot+photo}</div>`;
+    }).join('') + `</div>`;
+  }
+
+  if(gallery.length){
+    html += `
+      <div class="story-hdr" style="margin-top:40px;">
+        <div class="story-pre">More Memories</div>
+        <div class="story-zh">更多回憶</div>
+      </div>
+      <div class="ms-wrap">` + gallery.map(p=>`
+      <div class="ms-item reveal" onclick="openViewer('${p.url}','${(p.caption||'').replace(/'/g,"\\'")}')">
+        <img src="${p.url}" alt="" loading="lazy">
+        ${p.caption ? `<div class="ms-cap">${p.caption}</div>` : ''}
+      </div>`).join('') + `</div>`;
+  }
+
+  el.innerHTML = html;
+  observeReveals();
+}
+
+// 進場動畫
+let revealObs = null;
+function observeReveals(){
+  if(revealObs) revealObs.disconnect();
+  revealObs = new IntersectionObserver(entries=>{
+    entries.forEach(en=>{ if(en.isIntersecting){ en.target.classList.add('in'); revealObs.unobserve(en.target); } });
+  }, {threshold: .15});
+  document.querySelectorAll('.reveal:not(.in)').forEach(el=>revealObs.observe(el));
+}
+
+// ═══ 婚禮倒數 ═══
+let WEDDING_TS = new Date('2026-10-25T18:00:00+08:00').getTime();
+function tick(){
+  let diff = Math.max(0, WEDDING_TS - Date.now());
+  const d = Math.floor(diff / 86400000); diff -= d * 86400000;
+  const h = Math.floor(diff / 3600000);  diff -= h * 3600000;
+  const m = Math.floor(diff / 60000);    diff -= m * 60000;
+  const s = Math.floor(diff / 1000);
+  document.getElementById('cd-d').textContent = d;
+  document.getElementById('cd-h').textContent = String(h).padStart(2,'0');
+  document.getElementById('cd-m').textContent = String(m).padStart(2,'0');
+  document.getElementById('cd-s').textContent = String(s).padStart(2,'0');
+}
+tick();
+setInterval(tick, 1000);
+
+// ═══ 前台內容設定（localStorage）═══
+const DEFAULT_CFG = {
+  groom:'莊勛凱', bride:'楊恩懿', groomEn:'Hsun-Kai', brideEn:'En-Yi',
+  date:'2026.10.25', weekday:'星期日', time1:'18:00', time2:'18:30',
+  venue:'茹曦酒店', venueEn:'ILLUME TAIPEI', hall:'5F 斯賓諾莎廳',
+  addr:'台北市松山區敦化北路 100 號',
+  invite:'我們決定攜手走進人生的下一章\n誠摯邀請您蒞臨我們的婚禮\n見證這份幸福 與我們共享喜悅',
+  storyIntro:'從相遇到相守，謝謝你走進我的生命',
+  closing:'感謝您一路以來的關心與祝福\n您的蒞臨 是我們最大的榮幸\n期待在最美好的日子與您相見',
+  sign:'With love, 勛凱 & 恩懿',
+  music:'https://cdn.pixabay.com/audio/2022/10/25/audio_31c3b8e8fa.mp3',
+  heroSpeed:'4.5',
+  chibi:'',
+  dogName:'愛犬',
+  photoGroom:'',
+  photoBride:'',
+  photoDog:''
+};
+function getCfg(){
+  try{
+    const raw = localStorage.getItem('wedding_cfg');
+    if(raw) return {...DEFAULT_CFG, ...JSON.parse(raw)};
+  }catch(e){}
+  return {...DEFAULT_CFG};
+}
+let cfg = getCfg();
+
+function applyConfig(){
+  const nameEl = document.querySelector('.names');
+  if(nameEl) nameEl.innerHTML = cfg.groom + '<span class="amp">&amp;</span>' + cfg.bride;
+  const nameEnEl = document.querySelector('.names-en');
+  if(nameEnEl) nameEnEl.textContent = cfg.groomEn + ' & ' + cfg.brideEn;
+  const envNames = document.querySelector('.env-names');
+  if(envNames) envNames.textContent = cfg.groom + ' ♡ ' + cfg.bride;
+  const dateLine = document.getElementById('date-line');
+  if(dateLine) dateLine.innerHTML = cfg.date + ' <span style="color:var(--coral);padding:0 4px;">·</span> 我們結婚了';
+  const icDate = document.querySelector('.info-date');
+  if(icDate){ const p = cfg.date.split('.'); icDate.textContent = p[1] + ' · ' + p[2]; }
+  const icMeta = document.querySelector('.info-meta');
+  if(icMeta) icMeta.textContent = cfg.date.split('.')[0] + ' ' + cfg.weekday;
+  const t1 = document.getElementById('info-t1');
+  if(t1) t1.textContent = cfg.time1;
+  const t2 = document.getElementById('info-t2');
+  if(t2) t2.textContent = cfg.time2;
+  const icVenue = document.querySelector('.info-venue');
+  if(icVenue) icVenue.textContent = cfg.venue;
+  const icVenueEn = document.querySelector('.info-venue-en');
+  if(icVenueEn) icVenueEn.textContent = cfg.venueEn;
+  const icHall = document.querySelector('.info-hall');
+  if(icHall) icHall.textContent = cfg.hall;
+  const icAddr = document.querySelector('.info-addr');
+  if(icAddr) icAddr.innerHTML = '<a href="https://maps.google.com/?q=25.0520,121.5497&z=17" target="_blank" style="color:var(--peach);text-decoration:underline;text-underline-offset:2px;">查看地圖</a>';
+  const dmDate = document.querySelector('.dm-date');
+  if(dmDate){ const p = cfg.date.split('.'); dmDate.textContent = p[0]+' 年 '+p[1]+' 月 '+p[2]+' 日'; }
+  const dmWeek = document.querySelector('.dm-week');
+  if(dmWeek) dmWeek.textContent = cfg.weekday;
+  const dmT1 = document.querySelectorAll('.dm-t-time');
+  if(dmT1[0]) dmT1[0].textContent = cfg.time1;
+  if(dmT1[1]) dmT1[1].textContent = cfg.time2;
+  const vmAddr = document.querySelector('.vm-row');
+  if(vmAddr) vmAddr.innerHTML = cfg.hall + '<br>📍 ' + cfg.addr + '<br>📞 +886 2-2719-7199';
+  const invEl = document.getElementById('invite-msg');
+  if(invEl) invEl.innerHTML = cfg.invite.replace(/\n/g, '<br>');
+  const siEl = document.getElementById('story-intro');
+  if(siEl) siEl.textContent = cfg.storyIntro;
+  const clEl = document.getElementById('closing-msg');
+  if(clEl) clEl.innerHTML = cfg.closing.replace(/\n/g, '<br>');
+  const sgEl = document.getElementById('closing-sign');
+  if(sgEl) sgEl.innerHTML = cfg.sign;
+  const bgmEl = document.getElementById('bgm');
+  if(bgmEl && bgmEl.src !== cfg.music) bgmEl.src = cfg.music;
+  const dp = cfg.date.split('.');
+  WEDDING_TS = new Date(dp[0]+'-'+dp[1]+'-'+dp[2]+'T'+cfg.time1+':00+08:00').getTime();
+  tick();
+  startSlideshow();
+  applyChibi();
+  applyCouplePhotos();
+}
+
+const CFG_FIELDS = ['groom','bride','groomEn','brideEn','date','weekday','time1','time2','venue','venueEn','hall','addr','invite','storyIntro','closing','sign','music','heroSpeed','dogName'];
+function loadConfigForm(){
+  CFG_FIELDS.forEach(k=>{
+    const el = document.getElementById('cfg-'+k);
+    if(el) el.value = cfg[k] || '';
+  });
+}
+function saveConfig(){
+  const data = {};
+  CFG_FIELDS.forEach(k=>{
+    const el = document.getElementById('cfg-'+k);
+    if(el) data[k] = el.value;
+  });
+  // 保留 chibi（插畫是另外管理的，不要覆蓋）
+  if(cfg.chibi) data.chibi = cfg.chibi;
+  if(cfg.photoGroom) data.photoGroom = cfg.photoGroom;
+  if(cfg.photoBride) data.photoBride = cfg.photoBride;
+  if(cfg.photoDog) data.photoDog = cfg.photoDog;
+  cfg = {...DEFAULT_CFG, ...data};
+  // 存 localStorage（不含 chibi，避免超過容量）
+  try{
+    const lite = {...data};
+    delete lite.chibi;
+    delete lite.photoGroom;
+    delete lite.photoBride;
+    delete lite.photoDog;
+    localStorage.setItem('wedding_cfg', JSON.stringify(lite));
+  }catch(e){ console.warn('localStorage 已滿'); }
+  // 存 Firestore（上線後所有人同步）
+  fbSet(CFG_PATH, data);
+  applyConfig();
+  document.getElementById('save-ok').textContent = '✅ 已儲存';
+  setTimeout(()=>document.getElementById('save-ok').textContent = '', 2500);
+}
+
+// ═══ 新人 & 愛犬照片 ═══
+async function uploadCouplePhoto(e, who){
+  const file = e.target.files[0];
+  if(!file) return;
+  const compressed = await compressChibi(file);
+  if(!compressed) return;
+  const key = 'photo' + who.charAt(0).toUpperCase() + who.slice(1);
+  cfg[key] = compressed;
+  applyCouplePhotos();
+  const update = {}; update[key] = compressed;
+  fbUpdate(CFG_PATH, update);
+  e.target.value = '';
+}
+function applyCouplePhotos(){
+  [{key:'photoGroom', front:'photo-groom', prev:'prev-groom'},
+   {key:'photoBride', front:'photo-bride', prev:'prev-bride'},
+   {key:'photoDog', front:'photo-dog', prev:'prev-dog'}].forEach(({key, front, prev})=>{
+    const url = cfg[key] || '';
+    const el = document.getElementById(front);
+    const pv = document.getElementById(prev);
+    if(el) el.style.backgroundImage = url ? `url('${url}')` : '';
+    if(pv){ pv.src = url; pv.style.display = url ? 'block' : 'none'; }
+  });
+  // 名字
+  const gn = document.getElementById('lbl-groom');
+  if(gn) gn.textContent = cfg.groom || '新郎';
+  const ge = document.getElementById('lbl-groomEn');
+  if(ge) ge.textContent = cfg.groomEn || 'Groom';
+  const bn = document.getElementById('lbl-bride');
+  if(bn) bn.textContent = cfg.bride || '新娘';
+  const be = document.getElementById('lbl-brideEn');
+  if(be) be.textContent = cfg.brideEn || 'Bride';
+  const dn = document.getElementById('lbl-dogName');
+  if(dn) dn.textContent = cfg.dogName || '愛犬';
+}
+
+// ═══ Q版插畫管理 ═══
+function compressChibi(file){
+  return new Promise(resolve=>{
+    const isPng = file.type === 'image/png';
+    const img = new Image();
+    img.onload = ()=>{
+      const MAX = 500;
+      let w = img.width, h = img.height;
+      if(w > MAX){ h = h * MAX / w; w = MAX; }
+      if(h > MAX){ w = w * MAX / h; h = MAX; }
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      const ctx = c.getContext('2d');
+      if(!isPng){ ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h); }
+      ctx.drawImage(img, 0, 0, w, h);
+      resolve(isPng ? c.toDataURL('image/png') : c.toDataURL('image/jpeg', 0.6));
+    };
+    img.onerror = ()=> resolve('');
+    img.src = URL.createObjectURL(file);
+  });
+}
+async function uploadChibi(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  try{
+    const compressed = await compressChibi(file);
+    if(!compressed){ alert('圖片讀取失敗'); return; }
+    cfg.chibi = compressed;
+    applyChibi();
+    // 只存 Firestore（chibi 太大不放 localStorage）
+    fbUpdate(CFG_PATH, {chibi: compressed});
+  }catch(err){
+    alert('上傳失敗：' + err.message);
+  }
+  e.target.value = '';
+}
+function deleteChibi(){
+  if(!confirm('確定移除 Q 版插畫？')) return;
+  cfg.chibi = '';
+  try{
+    const saved = JSON.parse(localStorage.getItem('wedding_cfg')||'{}');
+    delete saved.chibi;
+    localStorage.setItem('wedding_cfg', JSON.stringify(saved));
+  }catch(ex){}
+  fbUpdate(CFG_PATH, {chibi: ''});
+  applyChibi();
+}
+function applyChibi(){
+  const url = cfg.chibi || '';
+  const btm = document.getElementById('chibi-bottom');
+  const preview = document.getElementById('chibi-preview');
+  const empty = document.getElementById('chibi-empty');
+  const delBtn = document.getElementById('chibi-del-btn');
+  if(url){
+    if(btm){ btm.src = url; btm.style.display = 'block'; }
+    if(preview){ preview.src = url; preview.style.display = 'block'; }
+    if(empty) empty.style.display = 'none';
+    if(delBtn) delBtn.style.display = 'inline-block';
+  }else{
+    if(btm) btm.style.display = 'none';
+    if(preview) preview.style.display = 'none';
+    if(empty) empty.style.display = 'flex';
+    if(delBtn) delBtn.style.display = 'none';
+  }
+}
+
+// ═══ 照片放大檢視 ═══
+function openViewer(url, caption){
+  document.getElementById('v-img').src = url;
+  document.getElementById('v-cap').textContent = caption || '';
+  document.getElementById('viewer').classList.add('on');
+}
+function closeViewer(){
+  document.getElementById('viewer').classList.remove('on');
+}
+
+// ═══ 登入 ═══
+// ═══ 隱藏後台入口：連點結尾「囍」5 下 ═══
+let tapCount = 0, tapTimer = null;
+function secretTap(){
+  tapCount++;
+  clearTimeout(tapTimer);
+  if(tapCount >= 5){
+    tapCount = 0;
+    showLogin();
+    return;
+  }
+  // 2 秒內沒有繼續點就重置
+  tapTimer = setTimeout(()=>{ tapCount = 0; }, 2000);
+}
+
+function showLogin(){
+  document.getElementById('login-ov').classList.add('on');
+  setTimeout(()=>document.getElementById('pwd').focus(), 200);
+}
+function changePwd(){
+  const p1 = document.getElementById('new-pwd').value.trim();
+  const p2 = document.getElementById('new-pwd2').value.trim();
+  const ok = document.getElementById('pwd-ok');
+  if(p1.length < 4){
+    ok.textContent = '⚠️ 密碼至少 4 個字元';
+    ok.style.color = '#d05030';
+    return;
+  }
+  if(p1 !== p2){
+    ok.textContent = '⚠️ 兩次輸入的密碼不一致';
+    ok.style.color = '#d05030';
+    return;
+  }
+  // 存 localStorage + Firestore
+  try{ localStorage.setItem('wedding_pwd', p1); }catch(e){}
+  cfg.adminPwd = p1;
+  fbUpdate(CFG_PATH, {adminPwd: p1});
+  document.getElementById('new-pwd').value = '';
+  document.getElementById('new-pwd2').value = '';
+  ok.textContent = '✅ 密碼已更新';
+  ok.style.color = '#d05030';
+  setTimeout(()=>ok.textContent = '', 3000);
+}
+
+function login(){
+  const v = document.getElementById('pwd').value;
+  const stored = (cfg && cfg.adminPwd) ? cfg.adminPwd : getPwd();
+  if(v === stored){
+    document.getElementById('login-ov').classList.remove('on');
+    document.getElementById('pwd').value = '';
+    document.getElementById('err').textContent = '';
+    showStage('admin');
+    renderAdminList();
+    loadConfigForm();
+  }else{
+    document.getElementById('err').textContent = '密碼錯誤，請重試';
+  }
+}
+function logout(){ showStage('main'); }
+
+// ═══ 音樂 ═══
+const bgm = document.getElementById('bgm');
+const fab = document.getElementById('music-fab');
+let musicOn = false;
+function toggleMusic(){
+  if(musicOn){
+    bgm.pause(); fab.classList.remove('playing'); fab.classList.add('muted'); fab.textContent='🎵'; musicOn=false;
+  }else{
+    bgm.play().then(()=>{ fab.classList.add('playing'); fab.classList.remove('muted'); fab.textContent='🎶'; musicOn=true; })
+    .catch(()=>alert('音樂載入失敗'));
+  }
+}
+
+// ═══ 啟動 ═══
+makeFireflies();
+makeBulbs();
+refreshMainPhotos();
+renderStory();
+applyConfig();
+startSlideshow();
+
+// Firestore 設定同步（上線後生效）
+if(db){
+  db.collection('invitation_config').doc('main').onSnapshot(snap=>{
+    if(!snap.exists){
+      fbSet(CFG_PATH, DEFAULT_CFG);
+      return;
+    }
+    cfg = {...DEFAULT_CFG, ...snap.data()};
+    if(cfg.adminPwd){ try{ localStorage.setItem('wedding_pwd', cfg.adminPwd); }catch(e){} }
+    try{ localStorage.setItem('wedding_cfg', JSON.stringify(snap.data())); }catch(e){}
+    applyConfig();
+    if(document.getElementById('admin').classList.contains('on')) loadConfigForm();
+  }, err=>{
+    console.warn('設定使用本機資料:', err.message);
+  });
+}
+</script>
+</body>
+</html>
