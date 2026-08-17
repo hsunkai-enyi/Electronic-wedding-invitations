@@ -399,13 +399,6 @@ body{position:relative;}
       </div>
     </div>
 
-    <div class="story-hdr">
-      <div class="story-pre">Our Story</div>
-      <div class="story-zh">我們的故事</div>
-    </div>
-    <div class="story-sub" id="story-intro">從相遇到相守，謝謝你走進我的生命</div>
-    <div id="story"></div>
-
     <div class="msg" style="padding-top:44px;">
       <img id="chibi-bottom" src="" alt="" style="width:min(160px,40vw);display:none;margin:0 auto 20px;filter:drop-shadow(0 6px 16px rgba(200,90,50,.18));">
       <div class="msg-deco"><span onclick="secretTap()" style="cursor:default;user-select:none;">囍</span></div>
@@ -574,22 +567,13 @@ body{position:relative;}
 
     <!-- ═══ 照片管理 ═══ -->
     <div class="sec-title">📸 照片管理</div>
+    <div style="font-size:11.5px;color:var(--muted);margin-bottom:12px;letter-spacing:.5px;line-height:1.7;padding:0 2px;">主視覺 Ken Burns 輪播，建議 3–5 張橫式照片</div>
 
-    <!-- 分類 Tab -->
-    <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;" id="sec-tabs">
-      <button class="sec-tab on" onclick="switchTab('hero')">🖼️ 主視覺 <span id="cnt-hero" class="sec-cnt">0</span></button>
-      <button class="sec-tab" onclick="switchTab('timeline')">📖 時間軸 <span id="cnt-timeline" class="sec-cnt">0</span></button>
-      <button class="sec-tab" onclick="switchTab('gallery')">🖼️ 花絮牆 <span id="cnt-gallery" class="sec-cnt">0</span></button>
-    </div>
-
-    <!-- Tab 說明 -->
-    <div id="tab-desc" style="font-size:11.5px;color:var(--muted);margin-bottom:12px;letter-spacing:.5px;line-height:1.7;padding:0 2px;"></div>
-
-    <!-- 上傳區（自動歸入當前 Tab 的區段）-->
+    <!-- 上傳區 -->
     <div class="upload-zone" onclick="document.getElementById('file-in').click()">
       <div class="upload-em">📸</div>
       <div class="upload-lbl">點擊上傳照片</div>
-      <div class="upload-sub" id="upload-hint">上傳後自動歸入「主視覺」</div>
+      <div class="upload-sub">可一次選擇多張</div>
     </div>
     <input type="file" id="file-in" accept="image/*" multiple style="display:none" onchange="uploadPhotos(event)">
 
@@ -668,7 +652,15 @@ function showStage(id){
 }
 function openEnv(){
   document.getElementById('flap').classList.add('open');
-  setTimeout(()=>showStage('main'), 900);
+  setTimeout(()=>{
+    showStage('main');
+    // 開信封時自動播放音樂
+    const b = document.getElementById('bgm');
+    const f = document.getElementById('music-fab');
+    if(b && !musicOn){
+      b.play().then(()=>{ f.classList.add('playing'); f.classList.remove('muted'); f.textContent='🎶'; musicOn=true; }).catch(()=>{});
+    }
+  }, 900);
 }
 
 // ═══ 螢火蟲產生器 ═══
@@ -717,7 +709,7 @@ function getPhotos(){ return photosCache; }
 
 function refreshAll(){
   refreshMainPhotos();
-  renderStory();
+
   if(document.getElementById('admin') && document.getElementById('admin').classList.contains('on')) renderAdminList();
 }
 
@@ -794,8 +786,8 @@ async function uploadPhotos(e){
       const id = 'p_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
       const photoData = {
         url: compressed,
-        caption: file.name.replace(/\.[^.]+$/, '').slice(0, 12),
-        section: currentTab || 'gallery',
+        caption: '',
+        section: 'hero',
         order: startOrder + count
       };
       if(db){
@@ -818,271 +810,90 @@ async function uploadPhotos(e){
 function delPhoto(id){
   if(!confirm('確定刪除這張照片？')) return;
   if(db){ db.collection(COL).doc(id).delete().catch(err=>alert('刪除失敗：'+err.message)); }
-  else{ savePhotos(getPhotos().filter(p=>p.id!==id)); }
+  else{ photosCache = photosCache.filter(p=>p.id!==id); savePhotos(photosCache); }
 }
-function movePhoto(id, dir){
-  const filtered = getPhotos().filter(p=>p.section === currentTab);
-  const i = filtered.findIndex(p=>p.id===id);
-  const j = i + dir;
-  if(i<0 || j<0 || j>=filtered.length) return;
-  if(db){
-    const batch = db.batch();
-    batch.update(db.collection(COL).doc(filtered[i].id), {order: filtered[j].order});
-    batch.update(db.collection(COL).doc(filtered[j].id), {order: filtered[i].order});
-    batch.commit().catch(err=>alert('排序失敗：'+err.message));
-  }else{
-    const arr = getPhotos();
-    const ai = arr.findIndex(p=>p.id===filtered[i].id);
-    const aj = arr.findIndex(p=>p.id===filtered[j].id);
-    [arr[ai], arr[aj]] = [arr[aj], arr[ai]];
-    savePhotos(arr);
-  }
-}
+
 function saveAllPhotos(){
   const arr = getPhotos();
-  arr.forEach(p=>{
+  arr.forEach((p, i)=>{
     const input = document.getElementById('cap-'+p.id);
-    if(input && input.value !== p.caption){
-      p.caption = input.value;
-      if(db) db.collection(COL).doc(p.id).update({caption: input.value}).catch(()=>{});
-    }
+    if(input) p.caption = input.value;
+    p.order = i;
+    if(db) db.collection(COL).doc(p.id).update({caption: p.caption, order: i}).catch(()=>{});
   });
   photosCache = arr;
   refreshAll();
   const ok = document.getElementById('photo-save-ok');
-  if(ok){ ok.textContent = '✅ 照片已全部更新'; setTimeout(()=>ok.textContent = '', 2500); }
-}
-function updateCaption(id, val){
-  const p = photosCache.find(x=>x.id===id);
-  if(p) p.caption = val;
-}
-function updateSection(id, val){
-  if(db){ db.collection(COL).doc(id).update({section: val}).catch(err=>alert('更新失敗：'+err.message)); }
-  else{
-    const p = photosCache.find(x=>x.id===id);
-    if(p){ p.section = val; savePhotos(photosCache); }
-  }
+  if(ok){ ok.textContent = '✅ 照片已全部更新'; setTimeout(()=>ok.textContent='', 2500); }
 }
 
-// ═══ 前台照片：只取 section=hero 放三層堆疊 ═══
+// ═══ 前台照片 ═══
 function refreshMainPhotos(){
-  const heroPhotos = getPhotos().filter(p=>p.section === 'hero');
+  const photos = getPhotos();
   ['s0-img','s1-img','s2-img'].forEach((id, i)=>{
     const el = document.getElementById(id);
-    if(el) el.src = heroPhotos[i] ? heroPhotos[i].url : '';
+    if(el) el.src = photos[i] ? photos[i].url : '';
     const slide = document.getElementById('s'+i);
-    if(slide) slide.style.display = heroPhotos[i] ? '' : 'none';
+    if(slide) slide.style.display = photos[i] ? '' : 'none';
   });
-  if(heroPhotos[0]) document.getElementById('hs-back').style.backgroundImage = `url('${heroPhotos[0].url}')`;
-  if(heroPhotos[1] || heroPhotos[0]) document.getElementById('hs-mid').style.backgroundImage = `url('${(heroPhotos[1]||heroPhotos[0]).url}')`;
-  document.querySelectorAll('.hs-dot').forEach((el,i)=>{
-    el.style.display = i < heroPhotos.length ? '' : 'none';
-  });
+  if(photos[0]) document.getElementById('hs-back').style.backgroundImage = `url('${photos[0].url}')`;
+  if(photos[1]||photos[0]) document.getElementById('hs-mid').style.backgroundImage = `url('${(photos[1]||photos[0]).url}')`;
+  document.querySelectorAll('.hs-dot').forEach((el,i)=>{ el.style.display = i < photos.length ? '' : 'none'; });
 }
 
-// 前台照片自動輪播
-let slideIdx = 0;
-let slideTimer = null;
+let slideIdx = 0, slideTimer = null;
 function setSlide(i){
   slideIdx = i;
-  document.querySelectorAll('.hs-slide').forEach((el,idx)=> el.classList.toggle('on', idx === i));
-  document.querySelectorAll('.hs-dot').forEach((el,idx)=> el.classList.toggle('on', idx === i));
+  document.querySelectorAll('.hs-slide').forEach((el,idx)=>el.classList.toggle('on',idx===i));
+  document.querySelectorAll('.hs-dot').forEach((el,idx)=>el.classList.toggle('on',idx===i));
 }
 function startSlideshow(){
   if(slideTimer) clearInterval(slideTimer);
-  const ms = (cfg.heroSpeed || 4.5) * 1000;
+  const ms = (cfg.heroSpeed||4.5)*1000;
   slideTimer = setInterval(()=>{
-    const total = Math.min(3, getPhotos().filter(p=>p.section==='hero').length);
-    if(total > 1) setSlide((slideIdx + 1) % total);
+    const total = Math.min(3, getPhotos().length);
+    if(total>1) setSlide((slideIdx+1)%total);
   }, ms);
 }
-
-// ═══ 後台 render ═══
-// ═══ 後台分類 Tab ═══
-let currentTab = 'hero';
-const TAB_DESC = {
-  hero: '開頭 Ken Burns 輪播，建議 1–3 張最美的橫式照片',
-  timeline: '左右交錯講你們的故事，建議 4–6 張，每張配一個標題',
-  gallery: '瀑布流花絮牆，張數不限，生活照旅行照全丟這裡'
-};
-function switchTab(sec){
-  currentTab = sec;
-  document.querySelectorAll('.sec-tab').forEach(t=>{
-    t.classList.toggle('on', t.getAttribute('onclick').includes("'"+sec+"'"));
-  });
-  document.getElementById('tab-desc').textContent = TAB_DESC[sec];
-  document.getElementById('upload-hint').textContent = '上傳後自動歸入「' + SECTIONS[sec] + '」';
-  renderAdminList();
-}
-function moveToSection(id, sec){
-  updateSection(id, sec);
-  renderAdminList();
-}
+startSlideshow();
 
 // ═══ 拖曳排序 ═══
 let dragId = null;
 function initDragSort(){
-  const rows = document.querySelectorAll('.p-row[draggable]');
-  rows.forEach(row=>{
-    row.addEventListener('dragstart', e=>{
-      dragId = row.dataset.id;
-      row.classList.add('dragging');
-      e.dataTransfer.effectAllowed = 'move';
+  document.querySelectorAll('.p-row[draggable]').forEach(row=>{
+    row.addEventListener('dragstart',e=>{ dragId=row.dataset.id; row.classList.add('dragging'); e.dataTransfer.effectAllowed='move'; });
+    row.addEventListener('dragend',()=>{ dragId=null; row.classList.remove('dragging'); document.querySelectorAll('.p-row').forEach(r=>r.classList.remove('drag-over')); });
+    row.addEventListener('dragover',e=>{ e.preventDefault(); if(row.dataset.id!==dragId){ document.querySelectorAll('.p-row').forEach(r=>r.classList.remove('drag-over')); row.classList.add('drag-over'); } });
+    row.addEventListener('dragleave',()=>row.classList.remove('drag-over'));
+    row.addEventListener('drop',e=>{
+      e.preventDefault(); row.classList.remove('drag-over');
+      if(!dragId||row.dataset.id===dragId) return;
+      const arr=[...photosCache];
+      const fi=arr.findIndex(p=>p.id===dragId), ti=arr.findIndex(p=>p.id===row.dataset.id);
+      if(fi<0||ti<0) return;
+      const[m]=arr.splice(fi,1); arr.splice(ti,0,m);
+      arr.forEach((p,i)=>p.order=i);
+      photosCache=arr;
+      if(db){ arr.forEach(p=>db.collection(COL).doc(p.id).update({order:p.order}).catch(()=>{})); }
+      refreshAll();
     });
-    row.addEventListener('dragend', ()=>{
-      dragId = null;
-      row.classList.remove('dragging');
-      document.querySelectorAll('.p-row').forEach(r=>r.classList.remove('drag-over'));
-    });
-    row.addEventListener('dragover', e=>{
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-      if(row.dataset.id !== dragId){
-        document.querySelectorAll('.p-row').forEach(r=>r.classList.remove('drag-over'));
-        row.classList.add('drag-over');
-      }
-    });
-    row.addEventListener('dragleave', ()=>{
-      row.classList.remove('drag-over');
-    });
-    row.addEventListener('drop', e=>{
-      e.preventDefault();
-      row.classList.remove('drag-over');
-      if(!dragId || row.dataset.id === dragId) return;
-      const targetId = row.dataset.id;
-      // 重新排序
-      const arr = getPhotos();
-      const filtered = arr.filter(p=>p.section === currentTab);
-      const fromIdx = filtered.findIndex(p=>p.id === dragId);
-      const toIdx = filtered.findIndex(p=>p.id === targetId);
-      if(fromIdx < 0 || toIdx < 0) return;
-      const [moved] = filtered.splice(fromIdx, 1);
-      filtered.splice(toIdx, 0, moved);
-      // 更新 order
-      const others = arr.filter(p=>p.section !== currentTab);
-      const reordered = [...others, ...filtered.map((p,i)=>({...p, order: i}))];
-      savePhotos(reordered);
-    });
-
-    // 觸控裝置支援
-    let touchY = 0, touchEl = null;
-    const handle = row.querySelector('.p-handle');
-    if(handle){
-      handle.addEventListener('touchstart', e=>{
-        touchEl = row;
-        touchY = e.touches[0].clientY;
-        row.classList.add('dragging');
-      }, {passive:true});
-    }
   });
 }
-// 觸控拖曳全域事件
-document.addEventListener('touchmove', e=>{
-  if(!document.querySelector('.p-row.dragging')) return;
-  const touch = e.touches[0];
-  const target = document.elementFromPoint(touch.clientX, touch.clientY);
-  const row = target?.closest?.('.p-row');
-  document.querySelectorAll('.p-row').forEach(r=>r.classList.remove('drag-over'));
-  if(row && !row.classList.contains('dragging')) row.classList.add('drag-over');
-}, {passive:true});
-document.addEventListener('touchend', ()=>{
-  const dragging = document.querySelector('.p-row.dragging');
-  const over = document.querySelector('.p-row.drag-over');
-  if(dragging && over){
-    const fromId = dragging.dataset.id;
-    const toId = over.dataset.id;
-    const arr = getPhotos();
-    const filtered = arr.filter(p=>p.section === currentTab);
-    const fromIdx = filtered.findIndex(p=>p.id === fromId);
-    const toIdx = filtered.findIndex(p=>p.id === toId);
-    if(fromIdx >= 0 && toIdx >= 0){
-      const [moved] = filtered.splice(fromIdx, 1);
-      filtered.splice(toIdx, 0, moved);
-      const others = arr.filter(p=>p.section !== currentTab);
-      const reordered = [...others, ...filtered.map((p,i)=>({...p, order: i}))];
-      savePhotos(reordered);
-    }
-  }
-  document.querySelectorAll('.p-row').forEach(r=>{r.classList.remove('dragging');r.classList.remove('drag-over');});
-});
 
 function renderAdminList(){
   const list = document.getElementById('p-list');
-  const all = getPhotos();
-  const arr = all.filter(p=>p.section === currentTab);
-  // 更新數量
-  ['hero','timeline','gallery'].forEach(s=>{
-    const el = document.getElementById('cnt-'+s);
-    if(el) el.textContent = all.filter(p=>p.section===s).length;
-  });
-  if(document.getElementById('tab-desc')) document.getElementById('tab-desc').textContent = TAB_DESC[currentTab] || '';
-  if(document.getElementById('upload-hint')) document.getElementById('upload-hint').textContent = '上傳後自動歸入「' + (SECTIONS[currentTab]||'') + '」';
-
-  if(arr.length === 0){
-    list.innerHTML = '<div class="p-empty"><div class="p-empty-em">📷</div><div>這個分類還沒有照片</div></div>';
-    return;
-  }
-  list.innerHTML = arr.map((p, idx)=>`
+  const arr = getPhotos();
+  if(!arr.length){ list.innerHTML='<div class="p-empty"><div class="p-empty-em">📷</div><div>還沒有照片，上傳第一張吧</div></div>'; return; }
+  list.innerHTML = arr.map((p,idx)=>`
     <div class="p-row" draggable="true" data-id="${p.id}" data-idx="${idx}">
       <div class="p-handle" title="拖曳排序">☰</div>
       <img class="p-thumb" src="${p.url}" alt="">
       <div class="p-info">
         <input class="p-cap" id="cap-${p.id}" value="${(p.caption||'').replace(/"/g,'&quot;')}" placeholder="輸入標題...">
-        <div class="p-move-sec">
-          ${Object.entries(SECTIONS).map(([k,v])=>`<button class="p-sec-btn ${p.section===k?'cur':''}" onclick="moveToSection('${p.id}','${k}')">${v}</button>`).join('')}
-        </div>
       </div>
       <button class="p-del" onclick="delPhoto('${p.id}')" title="刪除">🗑</button>
-    </div>
-  `).join('');
+    </div>`).join('');
   initDragSort();
-}
-
-// ═══ 照片故事區 ═══
-const SECTIONS = { hero:'🖼️ 主視覺', timeline:'📖 時間軸', gallery:'🖼️ 花絮牆' };
-
-function renderStory(){
-  const el = document.getElementById('story');
-  const arr = getPhotos();
-  const timeline = arr.filter(p=>p.section === 'timeline');
-  const gallery = arr.filter(p=>p.section === 'gallery');
-  let html = '';
-
-  if(timeline.length){
-    html += `<div class="tl-wrap"><div class="tl-line"></div>` + timeline.map((p,i)=>{
-      const photoL = i % 2 === 0;
-      const photo = `<div class="tl-side ${photoL?'ph-l':''}"><div class="tl-photo" style="background-image:url('${p.url}')" onclick="openViewer('${p.url}','${(p.caption||'').replace(/'/g,"\\'")}')"></div></div>`;
-      const dot = `<div class="tl-center"><div class="tl-dot"></div></div>`;
-      const txt = `<div class="tl-txt ${photoL?'':'al-r'}"><div class="tl-cap">${p.caption||''}</div></div>`;
-      return `<div class="tl-row reveal ${photoL?'from-l':'from-r'}">${photoL ? photo+dot+txt : txt+dot+photo}</div>`;
-    }).join('') + `</div>`;
-  }
-
-  if(gallery.length){
-    html += `
-      <div class="story-hdr" style="margin-top:40px;">
-        <div class="story-pre">More Memories</div>
-        <div class="story-zh">更多回憶</div>
-      </div>
-      <div class="ms-wrap">` + gallery.map(p=>`
-      <div class="ms-item reveal" onclick="openViewer('${p.url}','${(p.caption||'').replace(/'/g,"\\'")}')">
-        <img src="${p.url}" alt="" loading="lazy">
-        ${p.caption ? `<div class="ms-cap">${p.caption}</div>` : ''}
-      </div>`).join('') + `</div>`;
-  }
-
-  el.innerHTML = html;
-  observeReveals();
-}
-
-// 進場動畫
-let revealObs = null;
-function observeReveals(){
-  if(revealObs) revealObs.disconnect();
-  revealObs = new IntersectionObserver(entries=>{
-    entries.forEach(en=>{ if(en.isIntersecting){ en.target.classList.add('in'); revealObs.unobserve(en.target); } });
-  }, {threshold: .15});
-  document.querySelectorAll('.reveal:not(.in)').forEach(el=>revealObs.observe(el));
 }
 
 // ═══ 婚禮倒數 ═══
@@ -1404,7 +1215,7 @@ function toggleMusic(){
 makeFireflies();
 makeBulbs();
 refreshMainPhotos();
-renderStory();
+
 applyConfig();
 startSlideshow();
 
