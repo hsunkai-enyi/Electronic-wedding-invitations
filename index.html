@@ -399,6 +399,12 @@ body{position:relative;}
       </div>
     </div>
 
+    <div class="story-hdr">
+      <div class="story-pre">Sweet Moments</div>
+      <div class="story-zh">甜蜜時光</div>
+    </div>
+    <div id="gallery"></div>
+
     <div class="msg" style="padding-top:44px;">
       <img id="chibi-bottom" src="" alt="" style="width:min(160px,40vw);display:none;margin:0 auto 20px;filter:drop-shadow(0 6px 16px rgba(200,90,50,.18));">
       <div class="msg-deco"><span onclick="secretTap()" style="cursor:default;user-select:none;">囍</span></div>
@@ -567,13 +573,17 @@ body{position:relative;}
 
     <!-- ═══ 照片管理 ═══ -->
     <div class="sec-title">📸 照片管理</div>
-    <div style="font-size:11.5px;color:var(--muted);margin-bottom:12px;letter-spacing:.5px;line-height:1.7;padding:0 2px;">主視覺 Ken Burns 輪播，建議 3–5 張橫式照片</div>
 
-    <!-- 上傳區 -->
+    <div style="display:flex;gap:6px;margin-bottom:14px;" id="sec-tabs">
+      <button class="sec-tab on" onclick="switchTab('hero')">🖼️ 主視覺 <span id="cnt-hero" class="sec-cnt">0</span></button>
+      <button class="sec-tab" onclick="switchTab('gallery')">📷 更多回憶 <span id="cnt-gallery" class="sec-cnt">0</span></button>
+    </div>
+    <div id="tab-desc" style="font-size:11.5px;color:var(--muted);margin-bottom:12px;letter-spacing:.5px;line-height:1.7;"></div>
+
     <div class="upload-zone" onclick="document.getElementById('file-in').click()">
       <div class="upload-em">📸</div>
       <div class="upload-lbl">點擊上傳照片</div>
-      <div class="upload-sub">可一次選擇多張</div>
+      <div class="upload-sub" id="upload-hint">可一次選擇多張</div>
     </div>
     <input type="file" id="file-in" accept="image/*" multiple style="display:none" onchange="uploadPhotos(event)">
 
@@ -608,632 +618,503 @@ body{position:relative;}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-app-compat.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-firestore-compat.min.js"></script>
 <script>
-// ═══ Firebase 初始化（離線時自動降級）═══
+// ═══ Firebase ═══
 var db = null;
 try{
   firebase.initializeApp({
-    apiKey: "AIzaSyA_jhl1EFjf72jwO8JMx4BY6-lBLgKGkys",
-    authDomain: "wedding-einvitation-363b3.firebaseapp.com",
-    projectId: "wedding-einvitation-363b3",
-    storageBucket: "wedding-einvitation-363b3.firebasestorage.app",
-    messagingSenderId: "357486976067",
-    appId: "1:357486976067:web:89ef449181ef6e8246c8f6"
+    apiKey:"AIzaSyA_jhl1EFjf72jwO8JMx4BY6-lBLgKGkys",
+    authDomain:"wedding-einvitation-363b3.firebaseapp.com",
+    projectId:"wedding-einvitation-363b3",
+    storageBucket:"wedding-einvitation-363b3.firebasestorage.app",
+    messagingSenderId:"357486976067",
+    appId:"1:357486976067:web:89ef449181ef6e8246c8f6"
   });
   db = firebase.firestore();
-}catch(e){ console.warn('Firebase 未載入，使用離線模式'); }
+}catch(e){ console.warn('Firebase offline'); }
+var COL = 'invitation_photos';
+var CFG_PATH = 'invitation_config/main';
 
-// 安全的 Firestore 操作（db 不存在時不報錯）
-function fbSet(path, data){ if(db) return db.doc(path).set(data).catch(()=>{}); }
-function fbUpdate(path, data){ if(db) return db.doc(path).update(data).catch(()=>{}); }
-function fbDelete(path){ if(db) return db.doc(path).delete().catch(()=>{}); }
-const COL = 'invitation_photos';
-const CFG_PATH = 'invitation_config/main';
-
-// ═══ 設定 ═══
-function getPwd(){
-  try{ return localStorage.getItem('wedding_pwd') || 'admin2026'; }catch(e){ return 'admin2026'; }
-}
-const DEFAULT_PHOTOS = [
-  {id:'d1', url:'https://images.unsplash.com/photo-1519741497674-611481863552?w=900&h=1200&fit=crop', caption:'主視覺', section:'hero'},
-  {id:'d2', url:'https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=900&h=1200&fit=crop', caption:'主視覺', section:'hero'},
-  {id:'d3', url:'https://images.unsplash.com/photo-1521543298578-0e0bcaee14b1?w=900&h=1200&fit=crop', caption:'主視覺', section:'hero'},
-  {id:'d4', url:'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=900&h=1200&fit=crop', caption:'初見', section:'timeline'},
-  {id:'d5', url:'https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=900&h=700&fit=crop', caption:'相知', section:'timeline'},
-  {id:'d6', url:'https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=900&h=1300&fit=crop', caption:'相守', section:'timeline'},
-  {id:'d7', url:'https://images.unsplash.com/photo-1460364157752-926555421a7e?w=900&h=800&fit=crop', caption:'花絮', section:'gallery'},
-  {id:'d8', url:'https://images.unsplash.com/photo-1529634597503-139d3726fed5?w=900&h=900&fit=crop', caption:'日常', section:'gallery'},
-  {id:'d9', url:'https://images.unsplash.com/photo-1544078751-58fee2d8a03b?w=900&h=1100&fit=crop', caption:'旅行', section:'gallery'},
+// ═══ 預設資料 ═══
+var DEFAULT_PHOTOS = [
+  {id:'d1',url:'https://images.unsplash.com/photo-1519741497674-611481863552?w=900&h=600&fit=crop',caption:'',section:'hero',order:0},
+  {id:'d2',url:'https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=900&h=600&fit=crop',caption:'',section:'hero',order:1},
+  {id:'d3',url:'https://images.unsplash.com/photo-1521543298578-0e0bcaee14b1?w=900&h=600&fit=crop',caption:'',section:'hero',order:2},
+  {id:'d4',url:'https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=900&h=700&fit=crop',caption:'花絮',section:'gallery',order:3},
+  {id:'d5',url:'https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=900&h=600&fit=crop',caption:'旅行',section:'gallery',order:4},
+  {id:'d6',url:'https://images.unsplash.com/photo-1460364157752-926555421a7e?w=900&h=800&fit=crop',caption:'日常',section:'gallery',order:5}
 ];
+var DEFAULT_CFG = {
+  groom:'莊勛凱',bride:'楊恩懿',groomEn:'Hsun-Kai',brideEn:'En-Yi',
+  date:'2026.10.25',weekday:'星期日',time1:'18:00',time2:'18:30',
+  venue:'茹曦酒店',venueEn:'ILLUME TAIPEI',hall:'5F 斯賓諾莎廳',
+  addr:'台北市松山區敦化北路 100 號',
+  invite:'我們決定攜手走進人生的下一章\n誠摯邀請您蒞臨我們的婚禮\n見證這份幸福 與我們共享喜悅',
+  storyIntro:'',
+  closing:'感謝您一路以來的關心與祝福\n您的蒞臨 是我們最大的榮幸\n期待在最美好的日子與您相見',
+  sign:'With love, 勛凱 & 恩懿',
+  music:'https://cdn.pixabay.com/audio/2022/10/25/audio_31c3b8e8fa.mp3',
+  heroSpeed:'4.5',chibi:'',adminPwd:''
+};
+
+// ═══ 狀態 ═══
+var photosCache = [...DEFAULT_PHOTOS];
+var cfg = {...DEFAULT_CFG};
+var musicOn = false;
+var slideIdx = 0, slideTimer = null;
+var WEDDING_TS = new Date('2026-10-25T18:00:00+08:00').getTime();
+
+// 讀取 localStorage 設定
+try{
+  var savedCfg = localStorage.getItem('wedding_cfg');
+  if(savedCfg) cfg = {...DEFAULT_CFG, ...JSON.parse(savedCfg)};
+}catch(e){}
 
 // ═══ Stage 切換 ═══
 function showStage(id){
-  document.querySelectorAll('.stage').forEach(s=>s.classList.remove('on'));
+  document.querySelectorAll('.stage').forEach(function(s){s.classList.remove('on')});
   document.getElementById(id).classList.add('on');
 }
 function openEnv(){
   document.getElementById('flap').classList.add('open');
-  setTimeout(()=>{
+  setTimeout(function(){
     showStage('main');
-    // 開信封時自動播放音樂
-    const b = document.getElementById('bgm');
-    const f = document.getElementById('music-fab');
+    var b = document.getElementById('bgm');
+    var f = document.getElementById('music-fab');
     if(b && !musicOn){
-      b.play().then(()=>{ f.classList.add('playing'); f.classList.remove('muted'); f.textContent='🎶'; musicOn=true; }).catch(()=>{});
+      b.play().then(function(){ f.classList.add('playing'); f.classList.remove('muted'); f.textContent='🎶'; musicOn=true; }).catch(function(){});
     }
   }, 900);
 }
 
-// ═══ 螢火蟲產生器 ═══
-function makeFireflies(){
-  const layer = document.getElementById('fireflies');
-  for(let i=0; i<20; i++){
-    const f = document.createElement('span');
-    f.className = 'firefly';
-    const size = 3 + Math.random()*4;
-    f.style.left = (Math.random()*100) + '%';
-    f.style.width = f.style.height = size + 'px';
-    f.style.animationDuration = (14 + Math.random()*12) + 's';
-    f.style.animationDelay = (-Math.random()*20) + 's';
-    f.style.setProperty('--drift', ((Math.random()-.5)*40) + 'px');
-    layer.appendChild(f);
-  }
-}
-
-// ═══ 燈串產生器 ═══
+// ═══ 燈串 ═══
 function makeBulbs(){
-  const g = document.getElementById('bulbs');
-  const N = 14;
-  for(let i=0; i<N; i++){
-    const t = i/(N-1);
-    const x = t*1400;
-    const y = 25*(1-t)*(1-t) + 105*(1-t)*t*0.85 + 75*t*t + (t<.5 ? t*30 : (1-t)*30);
-    const delay = (i*0.35).toFixed(2);
-    const svgNs = 'http://www.w3.org/2000/svg';
-    const grp = document.createElementNS(svgNs, 'g');
-    grp.setAttribute('class', 'bulb');
-    grp.style.animationDelay = delay + 's';
-    grp.innerHTML = `
-      <circle cx="${x}" cy="${y+18}" r="14" fill="#ffcf7a" opacity=".35"/>
-      <circle cx="${x}" cy="${y+18}" r="4.5" fill="#ffe4a8"/>
-      <circle cx="${x}" cy="${y+18}" r="2" fill="#fff5d9"/>
-      <line x1="${x}" y1="${y}" x2="${x}" y2="${y+13}" stroke="#7a5a48" stroke-width="1" opacity=".5"/>
-    `;
+  var g=document.getElementById('bulbs'),N=12,ns='http://www.w3.org/2000/svg';
+  for(var i=0;i<N;i++){
+    var t=i/(N-1),x=t*1400;
+    var y=20*(1-t)*(1-t)+85*(1-t)*t*0.85+60*t*t+(t<.5?t*24:(1-t)*24);
+    var grp=document.createElementNS(ns,'g');
+    grp.setAttribute('class','bulb');
+    grp.style.animationDelay=(i*0.35).toFixed(2)+'s';
+    grp.innerHTML='<circle cx="'+x+'" cy="'+(y+15)+'" r="12" fill="#ffcf7a" opacity=".32"/><circle cx="'+x+'" cy="'+(y+15)+'" r="4" fill="#ffe4a8"/><line x1="'+x+'" y1="'+y+'" x2="'+x+'" y2="'+(y+11)+'" stroke="#7a5a48" stroke-width="1" opacity=".5"/>';
     g.appendChild(grp);
   }
 }
 
-// ═══ 照片管理（Firestore 優先，localStorage 備援）═══
-let photosCache = [...DEFAULT_PHOTOS];
+// ═══ 螢火蟲 ═══
+function makeFireflies(){
+  var layer=document.getElementById('fireflies');
+  for(var i=0;i<18;i++){
+    var f=document.createElement('span');
+    f.className='firefly';
+    var size=3+Math.random()*4;
+    f.style.left=(Math.random()*100)+'%';
+    f.style.width=f.style.height=size+'px';
+    f.style.animationDuration=(14+Math.random()*12)+'s';
+    f.style.animationDelay=(-Math.random()*20)+'s';
+    f.style.setProperty('--drift',((Math.random()-.5)*40)+'px');
+    layer.appendChild(f);
+  }
+}
 
+// ═══ 倒數計時 ═══
+function tick(){
+  var diff=Math.max(0,WEDDING_TS-Date.now());
+  var d=Math.floor(diff/86400000); diff-=d*86400000;
+  var h=Math.floor(diff/3600000); diff-=h*3600000;
+  var m=Math.floor(diff/60000); diff-=m*60000;
+  var s=Math.floor(diff/1000);
+  var de=document.getElementById('cd-d');if(de)de.textContent=d;
+  var he=document.getElementById('cd-h');if(he)he.textContent=String(h).padStart(2,'0');
+  var me=document.getElementById('cd-m');if(me)me.textContent=String(m).padStart(2,'0');
+  var se=document.getElementById('cd-s');if(se)se.textContent=String(s).padStart(2,'0');
+}
+
+// ═══ 照片管理 ═══
 function getPhotos(){ return photosCache; }
+var currentTab = 'hero';
+var TAB_DESC = {
+  hero:'Ken Burns 輪播，建議 3–5 張橫式照片',
+  gallery:'瀑布流花絮牆，張數不限，生活照全丟這裡'
+};
+
+function switchTab(sec){
+  currentTab = sec;
+  document.querySelectorAll('.sec-tab').forEach(function(t){
+    t.classList.toggle('on', t.getAttribute('onclick').indexOf("'"+sec+"'")>=0);
+  });
+  var desc=document.getElementById('tab-desc');if(desc)desc.textContent=TAB_DESC[sec]||'';
+  var hint=document.getElementById('upload-hint');if(hint)hint.textContent='上傳後歸入「'+(sec==='hero'?'主視覺':'更多回憶')+'」';
+  renderAdminList();
+}
+
+function refreshMainPhotos(){
+  var photos=getPhotos().filter(function(p){return p.section==='hero'});
+  ['s0-img','s1-img','s2-img'].forEach(function(id,i){
+    var el=document.getElementById(id);
+    if(el) el.src=photos[i]?photos[i].url:'';
+    var slide=document.getElementById('s'+i);
+    if(slide) slide.style.display=photos[i]?'':'none';
+  });
+  var back=document.getElementById('hs-back');
+  var mid=document.getElementById('hs-mid');
+  if(photos[0]&&back) back.style.backgroundImage="url('"+photos[0].url+"')";
+  if((photos[1]||photos[0])&&mid) mid.style.backgroundImage="url('"+(photos[1]||photos[0]).url+"')";
+  document.querySelectorAll('.hs-dot').forEach(function(el,i){ el.style.display=i<photos.length?'':'none'; });
+}
+
+function renderGallery(){
+  var el=document.getElementById('gallery');
+  if(!el)return;
+  var gallery=getPhotos().filter(function(p){return p.section==='gallery'});
+  if(!gallery.length){el.innerHTML='';return;}
+  el.innerHTML='<div class="ms-wrap">'+gallery.map(function(p){
+    return '<div class="ms-item reveal" onclick="openViewer(\''+p.url.replace(/'/g,"\\'")+'\',\''+((p.caption||'').replace(/'/g,"\\'"))+'\')">'+
+      '<img src="'+p.url+'" alt="" loading="lazy">'+
+      (p.caption?'<div class="ms-cap">'+p.caption+'</div>':'')+
+      '</div>';
+  }).join('')+'</div>';
+  // 進場動畫
+  var obs=new IntersectionObserver(function(entries){
+    entries.forEach(function(en){if(en.isIntersecting){en.target.classList.add('in');obs.unobserve(en.target)}});
+  },{threshold:.12});
+  document.querySelectorAll('.reveal:not(.in)').forEach(function(x){obs.observe(x)});
+}
 
 function refreshAll(){
   refreshMainPhotos();
-
-  if(document.getElementById('admin') && document.getElementById('admin').classList.contains('on')) renderAdminList();
+  renderGallery();
+  if(document.getElementById('admin')&&document.getElementById('admin').classList.contains('on'))renderAdminList();
 }
 
-// Firestore 即時同步
-if(db){
-  db.collection(COL).orderBy('order').onSnapshot(snap=>{
-    if(snap.empty){
-      // 第一次：寫入預設照片
-      DEFAULT_PHOTOS.forEach((p,i)=>{
-        db.collection(COL).doc(p.id).set({url:p.url, caption:p.caption, section:p.section||'timeline', order:i}).catch(()=>{});
-      });
-      return;
-    }
-    photosCache = snap.docs.map(d=>({id:d.id, ...d.data()}));
-    refreshAll();
-  }, err=>{
-    console.warn('照片離線模式:', err.message);
-    // 離線時用 localStorage
-    try{
-      const raw = localStorage.getItem('wedding_photos');
-      if(raw){ const a = JSON.parse(raw); if(Array.isArray(a) && a.length) photosCache = a; }
-    }catch(e){}
-    refreshAll();
-  });
-}else{
-  // 完全離線（本機開檔案）
-  try{
-    const raw = localStorage.getItem('wedding_photos');
-    if(raw){ const a = JSON.parse(raw); if(Array.isArray(a) && a.length) photosCache = a; }
-  }catch(e){}
-  refreshAll();
+function setSlide(i){
+  slideIdx=i;
+  document.querySelectorAll('.hs-slide').forEach(function(el,idx){el.classList.toggle('on',idx===i)});
+  document.querySelectorAll('.hs-dot').forEach(function(el,idx){el.classList.toggle('on',idx===i)});
+}
+function startSlideshow(){
+  if(slideTimer)clearInterval(slideTimer);
+  var ms=(parseFloat(cfg.heroSpeed)||4.5)*1000;
+  slideTimer=setInterval(function(){
+    var total=Math.min(3,getPhotos().filter(function(p){return p.section==='hero'}).length);
+    if(total>1)setSlide((slideIdx+1)%total);
+  },ms);
 }
 
-function savePhotos(arr){
-  photosCache = arr;
-  // localStorage 備援（只存 URL 太長會跳過）
-  try{ localStorage.setItem('wedding_photos', JSON.stringify(arr)); }catch(e){}
-  refreshAll();
-}
-
-// 壓縮圖片（PNG 保留透明背景）
+// 壓縮圖片
 function compressImage(file){
-  return new Promise((resolve, reject)=>{
-    const isPng = file.type === 'image/png';
-    const img = new Image();
-    img.onload = ()=>{
+  return new Promise(function(resolve,reject){
+    var isPng=file.type==='image/png';
+    var img=new Image();
+    img.onload=function(){
       try{
-        const MAX = 1400;
-        let w = img.width, h = img.height;
-        if(w > MAX){ h = h * MAX / w; w = MAX; }
-        if(h > MAX){ w = w * MAX / h; h = MAX; }
-        const c = document.createElement('canvas');
-        c.width = w; c.height = h;
-        const ctx = c.getContext('2d');
-        if(!isPng){ ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h); }
-        ctx.drawImage(img, 0, 0, w, h);
+        var MAX=1400,w=img.width,h=img.height;
+        if(w>MAX){h=h*MAX/w;w=MAX;}
+        if(h>MAX){w=w*MAX/h;h=MAX;}
+        var c=document.createElement('canvas');c.width=w;c.height=h;
+        var ctx=c.getContext('2d');
+        if(!isPng){ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);}
+        ctx.drawImage(img,0,0,w,h);
         URL.revokeObjectURL(img.src);
-        resolve(isPng ? c.toDataURL('image/png') : c.toDataURL('image/jpeg', 0.88));
-      }catch(err){ reject(err); }
+        resolve(isPng?c.toDataURL('image/png'):c.toDataURL('image/jpeg',0.88));
+      }catch(err){reject(err);}
     };
-    img.onerror = ()=>{ URL.revokeObjectURL(img.src); reject(new Error('圖片格式無法讀取')); };
-    img.src = URL.createObjectURL(file);
+    img.onerror=function(){URL.revokeObjectURL(img.src);reject(new Error('圖片格式無法讀取'));};
+    img.src=URL.createObjectURL(file);
   });
 }
+
+// 上傳照片
 async function uploadPhotos(e){
-  const files = Array.from(e.target.files || []);
-  if(!files.length) return;
-  let count = 0;
-  const startOrder = photosCache.length;
-  for(const file of files){
+  var files=Array.from(e.target.files||[]);
+  if(!files.length)return;
+  var count=0,startOrder=photosCache.length;
+  for(var file of files){
     try{
-      const compressed = await compressImage(file);
-      if(!compressed){ alert('圖片「'+file.name+'」讀取失敗'); continue; }
-      const id = 'p_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
-      const photoData = {
-        url: compressed,
-        caption: '',
-        section: 'hero',
-        order: startOrder + count
-      };
-      if(db){
-        await db.collection(COL).doc(id).set(photoData);
-      }else{
-        photosCache.push({id, ...photoData});
-        savePhotos(photosCache);
-      }
+      var compressed=await compressImage(file);
+      if(!compressed)continue;
+      var id='p_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
+      var data={url:compressed,caption:'',section:currentTab||'hero',order:startOrder+count};
+      if(db){await db.collection(COL).doc(id).set(data);}
+      else{photosCache.push({id:id,...data});refreshMainPhotos();renderAdminList();}
       count++;
-    }catch(err){
-      alert('上傳「'+file.name+'」失敗：'+err.message);
-    }
+    }catch(err){alert('上傳失敗：'+err.message);}
   }
-  if(count > 0){
-    const ok = document.getElementById('photo-save-ok');
-    if(ok){ ok.textContent = '✅ 已上傳 '+count+' 張照片'; setTimeout(()=>ok.textContent='', 2500); }
+  if(count>0){
+    var ok=document.getElementById('photo-save-ok');
+    if(ok){ok.textContent='✅ 已上傳 '+count+' 張照片';setTimeout(function(){ok.textContent=''},2500);}
   }
-  e.target.value = '';
+  e.target.value='';
 }
+
 function delPhoto(id){
-  if(!confirm('確定刪除這張照片？')) return;
-  if(db){ db.collection(COL).doc(id).delete().catch(err=>alert('刪除失敗：'+err.message)); }
-  else{ photosCache = photosCache.filter(p=>p.id!==id); savePhotos(photosCache); }
+  if(!confirm('確定刪除？'))return;
+  if(db){db.collection(COL).doc(id).delete().catch(function(e){alert('刪除失敗')});}
+  else{photosCache=photosCache.filter(function(p){return p.id!==id});refreshMainPhotos();renderAdminList();}
 }
 
 function saveAllPhotos(){
-  const arr = getPhotos();
-  arr.forEach((p, i)=>{
-    const input = document.getElementById('cap-'+p.id);
-    if(input) p.caption = input.value;
-    p.order = i;
-    if(db) db.collection(COL).doc(p.id).update({caption: p.caption, order: i}).catch(()=>{});
+  var arr=getPhotos();
+  arr.forEach(function(p,i){
+    var input=document.getElementById('cap-'+p.id);
+    if(input)p.caption=input.value;
+    p.order=i;
+    if(db)db.collection(COL).doc(p.id).update({caption:p.caption,order:i}).catch(function(){});
   });
-  photosCache = arr;
-  refreshAll();
-  const ok = document.getElementById('photo-save-ok');
-  if(ok){ ok.textContent = '✅ 照片已全部更新'; setTimeout(()=>ok.textContent='', 2500); }
+  photosCache=arr;
+  refreshMainPhotos();
+  var ok=document.getElementById('photo-save-ok');
+  if(ok){ok.textContent='✅ 照片已全部更新';setTimeout(function(){ok.textContent=''},2500);}
 }
 
-// ═══ 前台照片 ═══
-function refreshMainPhotos(){
-  const photos = getPhotos();
-  ['s0-img','s1-img','s2-img'].forEach((id, i)=>{
-    const el = document.getElementById(id);
-    if(el) el.src = photos[i] ? photos[i].url : '';
-    const slide = document.getElementById('s'+i);
-    if(slide) slide.style.display = photos[i] ? '' : 'none';
-  });
-  if(photos[0]) document.getElementById('hs-back').style.backgroundImage = `url('${photos[0].url}')`;
-  if(photos[1]||photos[0]) document.getElementById('hs-mid').style.backgroundImage = `url('${(photos[1]||photos[0]).url}')`;
-  document.querySelectorAll('.hs-dot').forEach((el,i)=>{ el.style.display = i < photos.length ? '' : 'none'; });
-}
-
-let slideIdx = 0, slideTimer = null;
-function setSlide(i){
-  slideIdx = i;
-  document.querySelectorAll('.hs-slide').forEach((el,idx)=>el.classList.toggle('on',idx===i));
-  document.querySelectorAll('.hs-dot').forEach((el,idx)=>el.classList.toggle('on',idx===i));
-}
-function startSlideshow(){
-  if(slideTimer) clearInterval(slideTimer);
-  const ms = (cfg.heroSpeed||4.5)*1000;
-  slideTimer = setInterval(()=>{
-    const total = Math.min(3, getPhotos().length);
-    if(total>1) setSlide((slideIdx+1)%total);
-  }, ms);
-}
-startSlideshow();
-
-// ═══ 拖曳排序 ═══
-let dragId = null;
+// 拖曳排序
+var dragId=null;
 function initDragSort(){
-  document.querySelectorAll('.p-row[draggable]').forEach(row=>{
-    row.addEventListener('dragstart',e=>{ dragId=row.dataset.id; row.classList.add('dragging'); e.dataTransfer.effectAllowed='move'; });
-    row.addEventListener('dragend',()=>{ dragId=null; row.classList.remove('dragging'); document.querySelectorAll('.p-row').forEach(r=>r.classList.remove('drag-over')); });
-    row.addEventListener('dragover',e=>{ e.preventDefault(); if(row.dataset.id!==dragId){ document.querySelectorAll('.p-row').forEach(r=>r.classList.remove('drag-over')); row.classList.add('drag-over'); } });
-    row.addEventListener('dragleave',()=>row.classList.remove('drag-over'));
-    row.addEventListener('drop',e=>{
-      e.preventDefault(); row.classList.remove('drag-over');
-      if(!dragId||row.dataset.id===dragId) return;
-      const arr=[...photosCache];
-      const fi=arr.findIndex(p=>p.id===dragId), ti=arr.findIndex(p=>p.id===row.dataset.id);
-      if(fi<0||ti<0) return;
-      const[m]=arr.splice(fi,1); arr.splice(ti,0,m);
-      arr.forEach((p,i)=>p.order=i);
+  document.querySelectorAll('.p-row[draggable]').forEach(function(row){
+    row.addEventListener('dragstart',function(e){dragId=row.dataset.id;row.classList.add('dragging');e.dataTransfer.effectAllowed='move';});
+    row.addEventListener('dragend',function(){dragId=null;row.classList.remove('dragging');document.querySelectorAll('.p-row').forEach(function(r){r.classList.remove('drag-over')});});
+    row.addEventListener('dragover',function(e){e.preventDefault();if(row.dataset.id!==dragId){document.querySelectorAll('.p-row').forEach(function(r){r.classList.remove('drag-over')});row.classList.add('drag-over');}});
+    row.addEventListener('dragleave',function(){row.classList.remove('drag-over')});
+    row.addEventListener('drop',function(e){
+      e.preventDefault();row.classList.remove('drag-over');
+      if(!dragId||row.dataset.id===dragId)return;
+      var arr=[].concat(photosCache);
+      var fi=arr.findIndex(function(p){return p.id===dragId});
+      var ti=arr.findIndex(function(p){return p.id===row.dataset.id});
+      if(fi<0||ti<0)return;
+      var moved=arr.splice(fi,1)[0];arr.splice(ti,0,moved);
+      arr.forEach(function(p,i){p.order=i});
       photosCache=arr;
-      if(db){ arr.forEach(p=>db.collection(COL).doc(p.id).update({order:p.order}).catch(()=>{})); }
-      refreshAll();
+      if(db){arr.forEach(function(p){db.collection(COL).doc(p.id).update({order:p.order}).catch(function(){})});}
+      refreshMainPhotos();renderAdminList();
     });
   });
 }
 
 function renderAdminList(){
-  const list = document.getElementById('p-list');
-  const arr = getPhotos();
-  if(!arr.length){ list.innerHTML='<div class="p-empty"><div class="p-empty-em">📷</div><div>還沒有照片，上傳第一張吧</div></div>'; return; }
-  list.innerHTML = arr.map((p,idx)=>`
-    <div class="p-row" draggable="true" data-id="${p.id}" data-idx="${idx}">
-      <div class="p-handle" title="拖曳排序">☰</div>
-      <img class="p-thumb" src="${p.url}" alt="">
-      <div class="p-info">
-        <input class="p-cap" id="cap-${p.id}" value="${(p.caption||'').replace(/"/g,'&quot;')}" placeholder="輸入標題...">
-      </div>
-      <button class="p-del" onclick="delPhoto('${p.id}')" title="刪除">🗑</button>
-    </div>`).join('');
+  var list=document.getElementById('p-list');
+  var all=getPhotos();
+  var arr=all.filter(function(p){return p.section===currentTab});
+  // 更新數量
+  var ch=document.getElementById('cnt-hero');if(ch)ch.textContent=all.filter(function(p){return p.section==='hero'}).length;
+  var cg=document.getElementById('cnt-gallery');if(cg)cg.textContent=all.filter(function(p){return p.section==='gallery'}).length;
+  // Tab 說明
+  var desc=document.getElementById('tab-desc');if(desc)desc.textContent=TAB_DESC[currentTab]||'';
+  var hint=document.getElementById('upload-hint');if(hint)hint.textContent='上傳後歸入「'+(currentTab==='hero'?'主視覺':'更多回憶')+'」';
+
+  if(!arr.length){list.innerHTML='<div class="p-empty"><div class="p-empty-em">📷</div><div>這個分類還沒有照片</div></div>';return;}
+  list.innerHTML=arr.map(function(p,idx){
+    return '<div class="p-row" draggable="true" data-id="'+p.id+'" data-idx="'+idx+'">'+
+      '<div class="p-handle" title="拖曳排序">☰</div>'+
+      '<img class="p-thumb" src="'+p.url+'" alt="">'+
+      '<div class="p-info"><input class="p-cap" id="cap-'+p.id+'" value="'+(p.caption||'').replace(/"/g,'&quot;')+'" placeholder="輸入標題..."></div>'+
+      '<button class="p-del" onclick="delPhoto(\''+p.id+'\')" title="刪除">🗑</button></div>';
+  }).join('');
   initDragSort();
 }
 
-// ═══ 婚禮倒數 ═══
-let WEDDING_TS = new Date('2026-10-25T18:00:00+08:00').getTime();
-function tick(){
-  let diff = Math.max(0, WEDDING_TS - Date.now());
-  const d = Math.floor(diff / 86400000); diff -= d * 86400000;
-  const h = Math.floor(diff / 3600000);  diff -= h * 3600000;
-  const m = Math.floor(diff / 60000);    diff -= m * 60000;
-  const s = Math.floor(diff / 1000);
-  document.getElementById('cd-d').textContent = d;
-  document.getElementById('cd-h').textContent = String(h).padStart(2,'0');
-  document.getElementById('cd-m').textContent = String(m).padStart(2,'0');
-  document.getElementById('cd-s').textContent = String(s).padStart(2,'0');
-}
-tick();
-setInterval(tick, 1000);
-
-// ═══ 前台內容設定（localStorage）═══
-const DEFAULT_CFG = {
-  groom:'莊勛凱', bride:'楊恩懿', groomEn:'Hsun-Kai', brideEn:'En-Yi',
-  date:'2026.10.25', weekday:'星期日', time1:'18:00', time2:'18:30',
-  venue:'茹曦酒店', venueEn:'ILLUME TAIPEI', hall:'5F 斯賓諾莎廳',
-  addr:'台北市松山區敦化北路 100 號',
-  invite:'我們決定攜手走進人生的下一章\n誠摯邀請您蒞臨我們的婚禮\n見證這份幸福 與我們共享喜悅',
-  storyIntro:'從相遇到相守，謝謝你走進我的生命',
-  closing:'感謝您一路以來的關心與祝福\n您的蒞臨 是我們最大的榮幸\n期待在最美好的日子與您相見',
-  sign:'With love, 勛凱 & 恩懿',
-  music:'https://cdn.pixabay.com/audio/2022/10/25/audio_31c3b8e8fa.mp3',
-  heroSpeed:'4.5',
-  chibi:'',
-  dogName:'愛犬',
-  photoGroom:'',
-  photoBride:'',
-  photoDog:''
-};
-function getCfg(){
-  try{
-    const raw = localStorage.getItem('wedding_cfg');
-    if(raw) return {...DEFAULT_CFG, ...JSON.parse(raw)};
-  }catch(e){}
-  return {...DEFAULT_CFG};
-}
-let cfg = getCfg();
+// ═══ 設定管理 ═══
+var CFG_FIELDS=['groom','bride','groomEn','brideEn','date','weekday','time1','time2','venue','venueEn','hall','addr','invite','storyIntro','closing','sign','music','heroSpeed'];
 
 function applyConfig(){
-  const nameEl = document.querySelector('.names');
-  if(nameEl) nameEl.innerHTML = cfg.groom + '<span class="amp">&amp;</span>' + cfg.bride;
-  const nameEnEl = document.querySelector('.names-en');
-  if(nameEnEl) nameEnEl.textContent = cfg.groomEn + ' & ' + cfg.brideEn;
-  const envNames = document.querySelector('.env-names');
-  if(envNames) envNames.textContent = cfg.groom + ' ♡ ' + cfg.bride;
-  const dateLine = document.getElementById('date-line');
-  if(dateLine) dateLine.innerHTML = cfg.date + ' <span style="color:var(--coral);padding:0 4px;">·</span> 我們結婚了';
-  const icDate = document.querySelector('.info-date');
-  if(icDate){ const p = cfg.date.split('.'); icDate.textContent = p[1] + ' · ' + p[2]; }
-  const icMeta = document.querySelector('.info-meta');
-  if(icMeta) icMeta.textContent = cfg.date.split('.')[0] + ' ' + cfg.weekday;
-  const t1 = document.getElementById('info-t1');
-  if(t1) t1.textContent = cfg.time1;
-  const t2 = document.getElementById('info-t2');
-  if(t2) t2.textContent = cfg.time2;
-  const icVenue = document.querySelector('.info-venue');
-  if(icVenue) icVenue.textContent = cfg.venue;
-  const icVenueEn = document.querySelector('.info-venue-en');
-  if(icVenueEn) icVenueEn.textContent = cfg.venueEn;
-  const icHall = document.querySelector('.info-hall');
-  if(icHall) icHall.textContent = cfg.hall;
-  const icAddr = document.querySelector('.info-addr');
-  if(icAddr) icAddr.innerHTML = '<a href="https://maps.google.com/?q=25.0520,121.5497&z=17" target="_blank" style="color:var(--peach);text-decoration:underline;text-underline-offset:2px;">查看地圖</a>';
-  const dmDate = document.querySelector('.dm-date');
-  if(dmDate){ const p = cfg.date.split('.'); dmDate.textContent = p[0]+' 年 '+p[1]+' 月 '+p[2]+' 日'; }
-  const dmWeek = document.querySelector('.dm-week');
-  if(dmWeek) dmWeek.textContent = cfg.weekday;
-  const dmT1 = document.querySelectorAll('.dm-t-time');
-  if(dmT1[0]) dmT1[0].textContent = cfg.time1;
-  if(dmT1[1]) dmT1[1].textContent = cfg.time2;
-  const vmAddr = document.querySelector('.vm-row');
-  if(vmAddr) vmAddr.innerHTML = cfg.hall + '<br>📍 ' + cfg.addr + '<br>📞 +886 2-2719-7199';
-  const invEl = document.getElementById('invite-msg');
-  if(invEl) invEl.innerHTML = cfg.invite.replace(/\n/g, '<br>');
-  const siEl = document.getElementById('story-intro');
-  if(siEl) siEl.textContent = cfg.storyIntro;
-  const clEl = document.getElementById('closing-msg');
-  if(clEl) clEl.innerHTML = cfg.closing.replace(/\n/g, '<br>');
-  const sgEl = document.getElementById('closing-sign');
-  if(sgEl) sgEl.innerHTML = cfg.sign;
-  const bgmEl = document.getElementById('bgm');
-  if(bgmEl && bgmEl.src !== cfg.music) bgmEl.src = cfg.music;
-  const dp = cfg.date.split('.');
-  WEDDING_TS = new Date(dp[0]+'-'+dp[1]+'-'+dp[2]+'T'+cfg.time1+':00+08:00').getTime();
+  var el;
+  el=document.querySelector('.names');if(el)el.innerHTML=cfg.groom+'<span class="amp">&amp;</span>'+cfg.bride;
+  el=document.querySelector('.names-en');if(el)el.textContent=cfg.groomEn+' & '+cfg.brideEn;
+  el=document.querySelector('.env-names');if(el)el.textContent=cfg.groom+' ♡ '+cfg.bride;
+  el=document.getElementById('date-line');if(el)el.innerHTML=cfg.date+' <span style="color:var(--coral);padding:0 4px;">·</span> 我們結婚了';
+  el=document.querySelector('.info-date');if(el){var p=cfg.date.split('.');el.textContent=p[1]+' · '+p[2];}
+  el=document.querySelector('.info-meta');if(el)el.textContent=cfg.date.split('.')[0]+' '+cfg.weekday;
+  el=document.getElementById('info-t1');if(el)el.textContent=cfg.time1;
+  el=document.getElementById('info-t2');if(el)el.textContent=cfg.time2;
+  el=document.querySelector('.info-venue');if(el)el.textContent=cfg.venue;
+  el=document.querySelector('.info-venue-en');if(el)el.textContent=cfg.venueEn;
+  el=document.querySelector('.info-hall');if(el)el.textContent=cfg.hall;
+  el=document.querySelector('.dm-date');if(el){var p=cfg.date.split('.');el.textContent=p[0]+' 年 '+p[1]+' 月 '+p[2]+' 日';}
+  el=document.querySelector('.dm-week');if(el)el.textContent=cfg.weekday;
+  var dmT=document.querySelectorAll('.dm-t-time');if(dmT[0])dmT[0].textContent=cfg.time1;if(dmT[1])dmT[1].textContent=cfg.time2;
+  el=document.getElementById('invite-msg');if(el)el.innerHTML=cfg.invite.replace(/\n/g,'<br>');
+  el=document.getElementById('closing-msg');if(el)el.innerHTML=cfg.closing.replace(/\n/g,'<br>');
+  el=document.getElementById('closing-sign');if(el)el.innerHTML=cfg.sign;
+  el=document.getElementById('bgm');if(el&&cfg.music&&el.src!==cfg.music)el.src=cfg.music;
+  // 倒數目標
+  var dp=cfg.date.split('.');
+  WEDDING_TS=new Date(dp[0]+'-'+dp[1]+'-'+dp[2]+'T'+cfg.time1+':00+08:00').getTime();
   tick();
   startSlideshow();
-  applyChibi();
-  applyCouplePhotos();
+  // Q版插畫
+  var chibiEl=document.getElementById('chibi-bottom');
+  if(chibiEl){
+    if(cfg.chibi){chibiEl.src=cfg.chibi;chibiEl.style.display='block';}
+    else{chibiEl.style.display='none';}
+  }
 }
 
-const CFG_FIELDS = ['groom','bride','groomEn','brideEn','date','weekday','time1','time2','venue','venueEn','hall','addr','invite','storyIntro','closing','sign','music','heroSpeed','dogName'];
 function loadConfigForm(){
-  CFG_FIELDS.forEach(k=>{
-    const el = document.getElementById('cfg-'+k);
-    if(el) el.value = cfg[k] || '';
+  CFG_FIELDS.forEach(function(k){
+    var el=document.getElementById('cfg-'+k);
+    if(el)el.value=cfg[k]||'';
   });
+  // Q版預覽
+  var pv=document.getElementById('chibi-preview');
+  var em=document.getElementById('chibi-empty');
+  var db2=document.getElementById('chibi-del-btn');
+  if(cfg.chibi){
+    if(pv){pv.src=cfg.chibi;pv.style.display='block';}
+    if(em)em.style.display='none';
+    if(db2)db2.style.display='inline-block';
+  }else{
+    if(pv)pv.style.display='none';
+    if(em)em.style.display='flex';
+    if(db2)db2.style.display='none';
+  }
 }
+
 function saveConfig(){
-  const data = {};
-  CFG_FIELDS.forEach(k=>{
-    const el = document.getElementById('cfg-'+k);
-    if(el) data[k] = el.value;
-  });
-  // 保留 chibi（插畫是另外管理的，不要覆蓋）
-  if(cfg.chibi) data.chibi = cfg.chibi;
-  if(cfg.photoGroom) data.photoGroom = cfg.photoGroom;
-  if(cfg.photoBride) data.photoBride = cfg.photoBride;
-  if(cfg.photoDog) data.photoDog = cfg.photoDog;
-  cfg = {...DEFAULT_CFG, ...data};
-  // 存 localStorage（不含 chibi，避免超過容量）
-  try{
-    const lite = {...data};
-    delete lite.chibi;
-    delete lite.photoGroom;
-    delete lite.photoBride;
-    delete lite.photoDog;
-    localStorage.setItem('wedding_cfg', JSON.stringify(lite));
-  }catch(e){ console.warn('localStorage 已滿'); }
-  // 存 Firestore（上線後所有人同步）
-  fbSet(CFG_PATH, data);
+  var data={};
+  CFG_FIELDS.forEach(function(k){var el=document.getElementById('cfg-'+k);if(el)data[k]=el.value;});
+  if(cfg.chibi)data.chibi=cfg.chibi;
+  if(cfg.adminPwd)data.adminPwd=cfg.adminPwd;
+  cfg={...DEFAULT_CFG,...data};
+  try{var lite={...data};delete lite.chibi;localStorage.setItem('wedding_cfg',JSON.stringify(lite));}catch(e){}
+  if(db)db.doc(CFG_PATH).set(data).catch(function(){});
   applyConfig();
-  document.getElementById('save-ok').textContent = '✅ 已儲存';
-  setTimeout(()=>document.getElementById('save-ok').textContent = '', 2500);
+  var ok=document.getElementById('save-ok');
+  if(ok){ok.textContent='✅ 已儲存';setTimeout(function(){ok.textContent=''},2500);}
 }
 
-// ═══ 新人 & 愛犬照片 ═══
-async function uploadCouplePhoto(e, who){
-  const file = e.target.files[0];
-  if(!file) return;
-  const compressed = await compressChibi(file);
-  if(!compressed) return;
-  const key = 'photo' + who.charAt(0).toUpperCase() + who.slice(1);
-  cfg[key] = compressed;
-  applyCouplePhotos();
-  const update = {}; update[key] = compressed;
-  fbUpdate(CFG_PATH, update);
-  e.target.value = '';
-}
-function applyCouplePhotos(){
-  [{key:'photoGroom', front:'photo-groom', prev:'prev-groom'},
-   {key:'photoBride', front:'photo-bride', prev:'prev-bride'},
-   {key:'photoDog', front:'photo-dog', prev:'prev-dog'}].forEach(({key, front, prev})=>{
-    const url = cfg[key] || '';
-    const el = document.getElementById(front);
-    const pv = document.getElementById(prev);
-    if(el) el.style.backgroundImage = url ? `url('${url}')` : '';
-    if(pv){ pv.src = url; pv.style.display = url ? 'block' : 'none'; }
-  });
-  // 名字
-  const gn = document.getElementById('lbl-groom');
-  if(gn) gn.textContent = cfg.groom || '新郎';
-  const ge = document.getElementById('lbl-groomEn');
-  if(ge) ge.textContent = cfg.groomEn || 'Groom';
-  const bn = document.getElementById('lbl-bride');
-  if(bn) bn.textContent = cfg.bride || '新娘';
-  const be = document.getElementById('lbl-brideEn');
-  if(be) be.textContent = cfg.brideEn || 'Bride';
-  const dn = document.getElementById('lbl-dogName');
-  if(dn) dn.textContent = cfg.dogName || '愛犬';
-}
-
-// ═══ Q版插畫管理 ═══
+// Q版插畫
 function compressChibi(file){
-  return new Promise(resolve=>{
-    const isPng = file.type === 'image/png';
-    const img = new Image();
-    img.onload = ()=>{
-      const MAX = 500;
-      let w = img.width, h = img.height;
-      if(w > MAX){ h = h * MAX / w; w = MAX; }
-      if(h > MAX){ w = w * MAX / h; h = MAX; }
-      const c = document.createElement('canvas');
-      c.width = w; c.height = h;
-      const ctx = c.getContext('2d');
-      if(!isPng){ ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h); }
-      ctx.drawImage(img, 0, 0, w, h);
-      resolve(isPng ? c.toDataURL('image/png') : c.toDataURL('image/jpeg', 0.6));
+  return new Promise(function(resolve){
+    var isPng=file.type==='image/png';
+    var img=new Image();
+    img.onload=function(){
+      var MAX=500,w=img.width,h=img.height;
+      if(w>MAX){h=h*MAX/w;w=MAX;}if(h>MAX){w=w*MAX/h;h=MAX;}
+      var c=document.createElement('canvas');c.width=w;c.height=h;
+      var ctx=c.getContext('2d');
+      if(!isPng){ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);}
+      ctx.drawImage(img,0,0,w,h);
+      resolve(isPng?c.toDataURL('image/png'):c.toDataURL('image/jpeg',0.6));
     };
-    img.onerror = ()=> resolve('');
-    img.src = URL.createObjectURL(file);
+    img.onerror=function(){resolve('');};
+    img.src=URL.createObjectURL(file);
   });
 }
 async function uploadChibi(e){
-  const file = e.target.files[0];
-  if(!file) return;
+  var file=e.target.files[0];if(!file)return;
   try{
-    const compressed = await compressChibi(file);
-    if(!compressed){ alert('圖片讀取失敗'); return; }
-    cfg.chibi = compressed;
-    applyChibi();
-    // 只存 Firestore（chibi 太大不放 localStorage）
-    fbUpdate(CFG_PATH, {chibi: compressed});
-  }catch(err){
-    alert('上傳失敗：' + err.message);
-  }
-  e.target.value = '';
+    var compressed=await compressChibi(file);
+    if(!compressed){alert('圖片讀取失敗');return;}
+    cfg.chibi=compressed;
+    applyConfig();loadConfigForm();
+    if(db)db.doc(CFG_PATH).update({chibi:compressed}).catch(function(){});
+  }catch(err){alert('上傳失敗：'+err.message);}
+  e.target.value='';
 }
 function deleteChibi(){
-  if(!confirm('確定移除 Q 版插畫？')) return;
-  cfg.chibi = '';
-  try{
-    const saved = JSON.parse(localStorage.getItem('wedding_cfg')||'{}');
-    delete saved.chibi;
-    localStorage.setItem('wedding_cfg', JSON.stringify(saved));
-  }catch(ex){}
-  fbUpdate(CFG_PATH, {chibi: ''});
-  applyChibi();
-}
-function applyChibi(){
-  const url = cfg.chibi || '';
-  const btm = document.getElementById('chibi-bottom');
-  const preview = document.getElementById('chibi-preview');
-  const empty = document.getElementById('chibi-empty');
-  const delBtn = document.getElementById('chibi-del-btn');
-  if(url){
-    if(btm){ btm.src = url; btm.style.display = 'block'; }
-    if(preview){ preview.src = url; preview.style.display = 'block'; }
-    if(empty) empty.style.display = 'none';
-    if(delBtn) delBtn.style.display = 'inline-block';
-  }else{
-    if(btm) btm.style.display = 'none';
-    if(preview) preview.style.display = 'none';
-    if(empty) empty.style.display = 'flex';
-    if(delBtn) delBtn.style.display = 'none';
-  }
+  if(!confirm('確定移除？'))return;
+  cfg.chibi='';
+  if(db)db.doc(CFG_PATH).update({chibi:''}).catch(function(){});
+  applyConfig();loadConfigForm();
 }
 
-// ═══ 照片放大檢視 ═══
-function openViewer(url, caption){
-  document.getElementById('v-img').src = url;
-  document.getElementById('v-cap').textContent = caption || '';
+// 照片檢視
+function openViewer(url,caption){
+  document.getElementById('v-img').src=url;
+  document.getElementById('v-cap').textContent=caption||'';
   document.getElementById('viewer').classList.add('on');
 }
-function closeViewer(){
-  document.getElementById('viewer').classList.remove('on');
-}
+function closeViewer(){document.getElementById('viewer').classList.remove('on');}
 
-// ═══ 登入 ═══
-// ═══ 隱藏後台入口：連點結尾「囍」5 下 ═══
-let tapCount = 0, tapTimer = null;
+// 隱藏後台入口
+var tapCount=0,tapTimer=null;
 function secretTap(){
   tapCount++;
   clearTimeout(tapTimer);
-  if(tapCount >= 5){
-    tapCount = 0;
-    showLogin();
-    return;
-  }
-  // 2 秒內沒有繼續點就重置
-  tapTimer = setTimeout(()=>{ tapCount = 0; }, 2000);
+  if(tapCount>=5){tapCount=0;showLogin();return;}
+  tapTimer=setTimeout(function(){tapCount=0},2000);
 }
 
+// 登入
 function showLogin(){
   document.getElementById('login-ov').classList.add('on');
-  setTimeout(()=>document.getElementById('pwd').focus(), 200);
+  setTimeout(function(){document.getElementById('pwd').focus()},200);
 }
-function changePwd(){
-  const p1 = document.getElementById('new-pwd').value.trim();
-  const p2 = document.getElementById('new-pwd2').value.trim();
-  const ok = document.getElementById('pwd-ok');
-  if(p1.length < 4){
-    ok.textContent = '⚠️ 密碼至少 4 個字元';
-    ok.style.color = '#d05030';
-    return;
-  }
-  if(p1 !== p2){
-    ok.textContent = '⚠️ 兩次輸入的密碼不一致';
-    ok.style.color = '#d05030';
-    return;
-  }
-  // 存 localStorage + Firestore
-  try{ localStorage.setItem('wedding_pwd', p1); }catch(e){}
-  cfg.adminPwd = p1;
-  fbUpdate(CFG_PATH, {adminPwd: p1});
-  document.getElementById('new-pwd').value = '';
-  document.getElementById('new-pwd2').value = '';
-  ok.textContent = '✅ 密碼已更新';
-  ok.style.color = '#d05030';
-  setTimeout(()=>ok.textContent = '', 3000);
-}
-
+function getPwd(){try{return localStorage.getItem('wedding_pwd')||'admin2026'}catch(e){return'admin2026'}}
 function login(){
-  const v = document.getElementById('pwd').value;
-  const stored = (cfg && cfg.adminPwd) ? cfg.adminPwd : getPwd();
-  if(v === stored){
+  var v=document.getElementById('pwd').value;
+  var stored=(cfg.adminPwd)?cfg.adminPwd:getPwd();
+  if(v===stored){
     document.getElementById('login-ov').classList.remove('on');
-    document.getElementById('pwd').value = '';
-    document.getElementById('err').textContent = '';
+    document.getElementById('pwd').value='';
+    document.getElementById('err').textContent='';
     showStage('admin');
     renderAdminList();
     loadConfigForm();
   }else{
-    document.getElementById('err').textContent = '密碼錯誤，請重試';
+    document.getElementById('err').textContent='密碼錯誤';
   }
 }
-function logout(){ showStage('main'); }
+function logout(){showStage('main');}
 
-// ═══ 音樂 ═══
-const bgm = document.getElementById('bgm');
-const fab = document.getElementById('music-fab');
-let musicOn = false;
+// 改密碼
+function changePwd(){
+  var p1=document.getElementById('new-pwd').value.trim();
+  var p2=document.getElementById('new-pwd2').value.trim();
+  var ok=document.getElementById('pwd-ok');
+  if(p1.length<4){ok.textContent='⚠️ 密碼至少 4 個字元';return;}
+  if(p1!==p2){ok.textContent='⚠️ 兩次密碼不一致';return;}
+  try{localStorage.setItem('wedding_pwd',p1)}catch(e){}
+  cfg.adminPwd=p1;
+  if(db)db.doc(CFG_PATH).update({adminPwd:p1}).catch(function(){});
+  document.getElementById('new-pwd').value='';
+  document.getElementById('new-pwd2').value='';
+  ok.textContent='✅ 密碼已更新';
+  setTimeout(function(){ok.textContent=''},3000);
+}
+
+// 音樂
 function toggleMusic(){
-  if(musicOn){
-    bgm.pause(); fab.classList.remove('playing'); fab.classList.add('muted'); fab.textContent='🎵'; musicOn=false;
-  }else{
-    bgm.play().then(()=>{ fab.classList.add('playing'); fab.classList.remove('muted'); fab.textContent='🎶'; musicOn=true; })
-    .catch(()=>alert('音樂載入失敗'));
-  }
+  var bgm=document.getElementById('bgm'),fab=document.getElementById('music-fab');
+  if(musicOn){bgm.pause();fab.classList.remove('playing');fab.classList.add('muted');fab.textContent='🎵';musicOn=false;}
+  else{bgm.play().then(function(){fab.classList.add('playing');fab.classList.remove('muted');fab.textContent='🎶';musicOn=true}).catch(function(){alert('音樂載入失敗')});}
 }
 
 // ═══ 啟動 ═══
 makeFireflies();
 makeBulbs();
+tick();
+setInterval(tick,1000);
 refreshMainPhotos();
-
+renderGallery();
 applyConfig();
 startSlideshow();
 
-// Firestore 設定同步（上線後生效）
+// Firestore 照片同步
 if(db){
-  db.collection('invitation_config').doc('main').onSnapshot(snap=>{
-    if(!snap.exists){
-      fbSet(CFG_PATH, DEFAULT_CFG);
+  db.collection(COL).orderBy('order').onSnapshot(function(snap){
+    if(snap.empty){
+      DEFAULT_PHOTOS.forEach(function(p,i){db.collection(COL).doc(p.id).set({url:p.url,caption:p.caption||'',section:'hero',order:i}).catch(function(){})});
       return;
     }
-    cfg = {...DEFAULT_CFG, ...snap.data()};
-    if(cfg.adminPwd){ try{ localStorage.setItem('wedding_pwd', cfg.adminPwd); }catch(e){} }
-    try{ localStorage.setItem('wedding_cfg', JSON.stringify(snap.data())); }catch(e){}
-    applyConfig();
-    if(document.getElementById('admin').classList.contains('on')) loadConfigForm();
-  }, err=>{
-    console.warn('設定使用本機資料:', err.message);
+    photosCache=snap.docs.map(function(d){return{id:d.id,...d.data()}});
+    refreshMainPhotos();
+    if(document.getElementById('admin')&&document.getElementById('admin').classList.contains('on'))renderAdminList();
+  },function(err){
+    console.warn('Photos offline:',err.message);
+    refreshMainPhotos();
   });
+}
+
+// Firestore 設定同步
+if(db){
+  db.collection('invitation_config').doc('main').onSnapshot(function(snap){
+    if(!snap.exists){db.doc(CFG_PATH).set(DEFAULT_CFG).catch(function(){});return;}
+    cfg={...DEFAULT_CFG,...snap.data()};
+    if(cfg.adminPwd)try{localStorage.setItem('wedding_pwd',cfg.adminPwd)}catch(e){}
+    try{localStorage.setItem('wedding_cfg',JSON.stringify(snap.data()))}catch(e){}
+    applyConfig();
+    if(document.getElementById('admin')&&document.getElementById('admin').classList.contains('on'))loadConfigForm();
+  },function(err){console.warn('Config offline:',err.message)});
 }
 </script>
 </body>
