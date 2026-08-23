@@ -777,7 +777,7 @@ function renderGallery(){
   var gallery=getPhotos().filter(function(p){return p.section==='gallery'});
   if(!gallery.length){el.innerHTML='';return;}
   el.innerHTML='<div class="ms-wrap">'+gallery.map(function(p){
-    return '<div class="ms-item reveal" onclick="openViewer(\''+p.url.replace(/'/g,"\\'")+'\',\''+((p.caption||'').replace(/'/g,"\\'"))+'\')">'+
+    return '<div class="ms-item" onclick="openViewer(\''+p.url.replace(/'/g,"\\'")+'\',\''+((p.caption||'').replace(/'/g,"\\'"))+'\')">'+
       '<img src="'+p.url+'" alt="" loading="lazy">'+
       (p.caption?'<div class="ms-cap">'+p.caption+'</div>':'')+
       '</div>';
@@ -855,6 +855,11 @@ async function uploadPhotos(e){
   e.target.value='';
 }
 
+function moveSection(id,sec){
+  if(db){db.collection(COL).doc(id).update({section:sec}).catch(function(e){alert('移動失敗')});}
+  else{var p=photosCache.find(function(x){return x.id===id});if(p){p.section=sec;refreshAll();renderAdminList();}}
+}
+
 function delPhoto(id){
   if(!confirm('確定刪除？'))return;
   if(db){db.collection(COL).doc(id).delete().catch(function(e){alert('刪除失敗')});}
@@ -912,10 +917,14 @@ function renderAdminList(){
 
   if(!arr.length){list.innerHTML='<div class="p-empty"><div class="p-empty-em">📷</div><div>這個分類還沒有照片</div></div>';return;}
   list.innerHTML=arr.map(function(p,idx){
+    var isHero=p.section==='hero';
+    var moveLabel=isHero?'→ 移到花絮牆':'→ 移到主視覺';
+    var moveTo=isHero?'gallery':'hero';
     return '<div class="p-row" draggable="true" data-id="'+p.id+'" data-idx="'+idx+'">'+
       '<div class="p-handle" title="拖曳排序">☰</div>'+
       '<img class="p-thumb" src="'+p.url+'" alt="">'+
-      '<div class="p-info"><input class="p-cap" id="cap-'+p.id+'" value="'+(p.caption||'').replace(/"/g,'&quot;')+'" placeholder="輸入標題..."></div>'+
+      '<div class="p-info"><input class="p-cap" id="cap-'+p.id+'" value="'+(p.caption||'').replace(/"/g,'&quot;')+'" placeholder="輸入標題...">'+
+      '<button style="margin-top:5px;padding:4px 10px;border:1px solid rgba(249,180,150,.4);border-radius:6px;background:white;font-size:10px;color:#6b3a20;cursor:pointer;letter-spacing:1px;" onclick="moveSection(\''+p.id+'\',\''+moveTo+'\')">'+moveLabel+'</button></div>'+
       '<button class="p-del" onclick="delPhoto(\''+p.id+'\')" title="刪除">🗑</button></div>';
   }).join('');
   initDragSort();
