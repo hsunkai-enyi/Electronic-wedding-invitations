@@ -1101,10 +1101,12 @@ startSlideshow();
 if(db){
   db.collection(COL).orderBy('order').onSnapshot(function(snap){
     if(snap.empty){
-      DEFAULT_PHOTOS.forEach(function(p,i){db.collection(COL).doc(p.id).set({url:p.url,caption:p.caption||'',section:'hero',order:i}).catch(function(){})});
+      DEFAULT_PHOTOS.forEach(function(p,i){db.collection(COL).doc(p.id).set({url:p.url,caption:p.caption||'',section:p.section||'hero',order:p.order||i}).catch(function(){})});
+      photosCache=[...DEFAULT_PHOTOS];
+      refreshAll();
       return;
     }
-    photosCache=snap.docs.map(function(d){return{id:d.id,...d.data()}});
+    photosCache=snap.docs.map(function(d){var data=d.data();data.section=data.section||'hero';return{id:d.id,...data}});
     refreshAll();
   },function(err){
     console.warn('Photos offline:',err.message);
