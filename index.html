@@ -566,12 +566,6 @@ body{position:relative;}
     <button class="save-btn" onclick="saveConfig()">儲存設定</button>
     <div class="save-ok" id="save-ok"></div>
 
-    <div class="sec-title">🔒 修改後台密碼</div>
-    <div class="field"><label>新密碼</label><input type="password" id="new-pwd" placeholder="輸入新密碼"></div>
-    <div class="field"><label>再次輸入新密碼</label><input type="password" id="new-pwd2" placeholder="再次輸入確認"></div>
-    <button class="save-btn" onclick="changePwd()">更新密碼</button>
-    <div class="save-ok" id="pwd-ok"></div>
-
     <!-- ═══ 照片管理 ═══ -->
     <div class="sec-title">📸 照片管理</div>
 
@@ -588,6 +582,7 @@ body{position:relative;}
     </div>
     <input type="file" id="file-in" accept="image/*" multiple style="display:none" onchange="uploadPhotos(event)">
 
+    <div id="photo-err" style="display:none;margin-bottom:12px;padding:10px 12px;border-radius:8px;background:#fff0ee;border:1px solid #f5b5a8;color:#a8321c;font-size:12px;line-height:1.7;"></div>
     <div class="p-list" id="p-list"></div>
 
     <button class="save-btn" onclick="saveAllPhotos()" style="margin-top:16px;">更新照片</button>
@@ -600,15 +595,14 @@ body{position:relative;}
 </div>
 
 <!-- ═══ Login Overlay ═══ -->
-<div id="login-ov">
+<div id="login-ov" onclick="if(event.target===this)this.classList.remove('on')">
   <div class="login-card">
     <div class="login-hdr">
       <span class="em">🔒</span>
       <span class="txt">後台登入</span>
     </div>
-    <input type="password" class="login-inp" id="pwd" placeholder="密碼" onkeydown="if(event.key==='Enter')login()">
     <div class="login-err" id="err"></div>
-    <button class="login-btn" onclick="login()">登入</button>
+    <button class="login-btn" onclick="login()">使用 Google 登入</button>
   </div>
 </div>
 
@@ -618,9 +612,10 @@ body{position:relative;}
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-app-compat.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-firestore-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-auth-compat.min.js"></script>
 <script>
 // ═══ Firebase ═══
-var db = null;
+var db = null, auth = null;
 try{
   firebase.initializeApp({
     apiKey:"AIzaSyA_jhl1EFjf72jwO8JMx4BY6-lBLgKGkys",
@@ -631,6 +626,7 @@ try{
     appId:"1:357486976067:web:89ef449181ef6e8246c8f6"
   });
   db = firebase.firestore();
+  auth = firebase.auth();
 }catch(e){ console.warn('Firebase offline'); }
 var COL = 'invitation_photos';
 var CFG_PATH = 'invitation_config/main';
@@ -654,7 +650,7 @@ var DEFAULT_CFG = {
   closing:'感謝您一路以來的關心與祝福\n您的蒞臨 是我們最大的榮幸\n期待在最美好的日子與您相見',
   sign:'With love, 勛凱 & 恩懿',
   music:'https://cdn.pixabay.com/audio/2022/10/25/audio_31c3b8e8fa.mp3',
-  heroSpeed:'4.5',chibi:'',adminPwd:''
+  heroSpeed:'4.5',chibi:''
 };
 
 // ═══ 狀態 ═══
@@ -774,7 +770,7 @@ function refreshMainPhotos(){
 function renderGallery(){
   var el=document.getElementById('gallery');
   if(!el)return;
-  var gallery=getPhotos().filter(function(p){return p.section==='gallery'});
+  var gallery=getPhotos().filter(function(p){return p.section!=='hero'});
   if(!gallery.length){el.innerHTML='';return;}
   el.innerHTML='<div class="ms-wrap">'+gallery.map(function(p){
     return '<div class="ms-item" onclick="openViewer(\''+p.url.replace(/'/g,"\\'")+'\',\''+((p.caption||'').replace(/'/g,"\\'"))+'\')">'+
@@ -836,7 +832,7 @@ function compressImage(file){
 async function uploadPhotos(e){
   var files=Array.from(e.target.files||[]);
   if(!files.length)return;
-  var count=0,startOrder=photosCache.length;
+  var count=0,startOrder=photosCache.reduce(function(m,p){return Math.max(m,typeof p.order==='number'?p.order:0)},-1)+1;
   for(var file of files){
     try{
       var compressed=await compressImage(file);
@@ -856,13 +852,13 @@ async function uploadPhotos(e){
 }
 
 function moveSection(id,sec){
-  if(db){db.collection(COL).doc(id).update({section:sec}).catch(function(e){alert('移動失敗')});}
+  if(db){db.collection(COL).doc(id).update({section:sec}).catch(writeErr);}
   else{var p=photosCache.find(function(x){return x.id===id});if(p){p.section=sec;refreshAll();renderAdminList();}}
 }
 
 function delPhoto(id){
   if(!confirm('確定刪除？'))return;
-  if(db){db.collection(COL).doc(id).delete().catch(function(e){alert('刪除失敗')});}
+  if(db){db.collection(COL).doc(id).delete().catch(writeErr);}
   else{photosCache=photosCache.filter(function(p){return p.id!==id});refreshAll();}
 }
 
@@ -872,7 +868,7 @@ function saveAllPhotos(){
     var input=document.getElementById('cap-'+p.id);
     if(input)p.caption=input.value;
     p.order=i;
-    if(db)db.collection(COL).doc(p.id).update({caption:p.caption,order:i}).catch(function(){});
+    if(db)db.collection(COL).doc(p.id).update({caption:p.caption,order:i}).catch(writeErr);
   });
   photosCache=arr;
   refreshAll();
@@ -898,7 +894,7 @@ function initDragSort(){
       var moved=arr.splice(fi,1)[0];arr.splice(ti,0,moved);
       arr.forEach(function(p,i){p.order=i});
       photosCache=arr;
-      if(db){arr.forEach(function(p){db.collection(COL).doc(p.id).update({order:p.order}).catch(function(){})});}
+      if(db){arr.forEach(function(p){db.collection(COL).doc(p.id).update({order:p.order}).catch(writeErr)});}
       refreshAll();
     });
   });
@@ -907,10 +903,10 @@ function initDragSort(){
 function renderAdminList(){
   var list=document.getElementById('p-list');
   var all=getPhotos();
-  var arr=all.filter(function(p){return p.section===currentTab});
+  var arr=all.filter(function(p){return currentTab==='hero'?p.section==='hero':p.section!=='hero'});
   // 更新數量
   var ch=document.getElementById('cnt-hero');if(ch)ch.textContent=all.filter(function(p){return p.section==='hero'}).length;
-  var cg=document.getElementById('cnt-gallery');if(cg)cg.textContent=all.filter(function(p){return p.section==='gallery'}).length;
+  var cg=document.getElementById('cnt-gallery');if(cg)cg.textContent=all.filter(function(p){return p.section!=='hero'}).length;
   // Tab 說明
   var desc=document.getElementById('tab-desc');if(desc)desc.textContent=TAB_DESC[currentTab]||'';
   var hint=document.getElementById('upload-hint');if(hint)hint.textContent='上傳後歸入「'+(currentTab==='hero'?'主視覺':'更多回憶')+'」';
@@ -923,7 +919,7 @@ function renderAdminList(){
     return '<div class="p-row" draggable="true" data-id="'+p.id+'" data-idx="'+idx+'">'+
       '<div class="p-handle" title="拖曳排序">☰</div>'+
       '<img class="p-thumb" src="'+p.url+'" alt="">'+
-      '<div class="p-info"><input class="p-cap" id="cap-'+p.id+'" value="'+(p.caption||'').replace(/"/g,'&quot;')+'" placeholder="輸入標題...">'+
+      '<div class="p-info">'+((p.section!=='hero'&&p.section!=='gallery')?'<div style="font-size:10px;color:#a08070;margin-bottom:4px;letter-spacing:1px;">原分類：'+String(p.section).replace(/</g,'&lt;')+'</div>':'')+'<input class="p-cap" id="cap-'+p.id+'" value="'+(p.caption||'').replace(/"/g,'&quot;')+'" placeholder="輸入標題...">'+
       '<button style="margin-top:5px;padding:4px 10px;border:1px solid rgba(249,180,150,.4);border-radius:6px;background:white;font-size:10px;color:#6b3a20;cursor:pointer;letter-spacing:1px;" onclick="moveSection(\''+p.id+'\',\''+moveTo+'\')">'+moveLabel+'</button></div>'+
       '<button class="p-del" onclick="delPhoto(\''+p.id+'\')" title="刪除">🗑</button></div>';
   }).join('');
@@ -990,10 +986,9 @@ function saveConfig(){
   var data={};
   CFG_FIELDS.forEach(function(k){var el=document.getElementById('cfg-'+k);if(el)data[k]=el.value;});
   if(cfg.chibi)data.chibi=cfg.chibi;
-  if(cfg.adminPwd)data.adminPwd=cfg.adminPwd;
   cfg={...DEFAULT_CFG,...data};
   try{var lite={...data};delete lite.chibi;localStorage.setItem('wedding_cfg',JSON.stringify(lite));}catch(e){}
-  if(db)db.doc(CFG_PATH).set(data).catch(function(){});
+  if(db)db.doc(CFG_PATH).set(data).catch(writeErr);
   applyConfig();
   var ok=document.getElementById('save-ok');
   if(ok){ok.textContent='✅ 已儲存';setTimeout(function(){ok.textContent=''},2500);}
@@ -1024,14 +1019,14 @@ async function uploadChibi(e){
     if(!compressed){alert('圖片讀取失敗');return;}
     cfg.chibi=compressed;
     applyConfig();loadConfigForm();
-    if(db)db.doc(CFG_PATH).update({chibi:compressed}).catch(function(){});
+    if(db)db.doc(CFG_PATH).set({chibi:compressed},{merge:true}).catch(writeErr);
   }catch(err){alert('上傳失敗：'+err.message);}
   e.target.value='';
 }
 function deleteChibi(){
   if(!confirm('確定移除？'))return;
   cfg.chibi='';
-  if(db)db.doc(CFG_PATH).update({chibi:''}).catch(function(){});
+  if(db)db.doc(CFG_PATH).set({chibi:''},{merge:true}).catch(writeErr);
   applyConfig();loadConfigForm();
 }
 
@@ -1052,42 +1047,37 @@ function secretTap(){
   tapTimer=setTimeout(function(){tapCount=0},2000);
 }
 
-// 登入
+// 登入（Google，只有規則裡指定的管理員帳號才有寫入權限）
 function showLogin(){
+  document.getElementById('err').textContent='';
   document.getElementById('login-ov').classList.add('on');
-  setTimeout(function(){document.getElementById('pwd').focus()},200);
 }
-function getPwd(){try{return localStorage.getItem('wedding_pwd')||'admin2026'}catch(e){return'admin2026'}}
 function login(){
-  var v=document.getElementById('pwd').value;
-  var stored=(cfg.adminPwd)?cfg.adminPwd:getPwd();
-  if(v===stored){
+  var err=document.getElementById('err');
+  if(!auth){err.textContent='Firebase 尚未載入';return;}
+  err.textContent='';
+  auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).then(function(){
     document.getElementById('login-ov').classList.remove('on');
-    document.getElementById('pwd').value='';
-    document.getElementById('err').textContent='';
     showStage('admin');
     renderAdminList();
     loadConfigForm();
-  }else{
-    document.getElementById('err').textContent='密碼錯誤';
-  }
+  }).catch(function(e){
+    err.textContent=(e.code==='auth/popup-closed-by-user')?'':'登入失敗（'+e.code+'）';
+    console.error('Google sign-in failed:',e.code,e.message);
+  });
 }
-function logout(){showStage('main');}
+function logout(){
+  showStage('main');
+  if(auth)auth.signOut().catch(function(){});
+}
 
-// 改密碼
-function changePwd(){
-  var p1=document.getElementById('new-pwd').value.trim();
-  var p2=document.getElementById('new-pwd2').value.trim();
-  var ok=document.getElementById('pwd-ok');
-  if(p1.length<4){ok.textContent='⚠️ 密碼至少 4 個字元';return;}
-  if(p1!==p2){ok.textContent='⚠️ 兩次密碼不一致';return;}
-  try{localStorage.setItem('wedding_pwd',p1)}catch(e){}
-  cfg.adminPwd=p1;
-  if(db)db.doc(CFG_PATH).update({adminPwd:p1}).catch(function(){});
-  document.getElementById('new-pwd').value='';
-  document.getElementById('new-pwd2').value='';
-  ok.textContent='✅ 密碼已更新';
-  setTimeout(function(){ok.textContent=''},3000);
+// 寫入失敗提示（避免一次跳出很多個視窗）
+var lastWriteErr=0;
+function writeErr(e){
+  console.error('Firestore write failed:',e&&e.code,e&&e.message);
+  if(Date.now()-lastWriteErr<3000)return;
+  lastWriteErr=Date.now();
+  alert('儲存失敗：'+((e&&e.code==='permission-denied')?'沒有權限。請確認已用管理員 Google 帳號登入後台。':((e&&e.message)||e)));
 }
 
 // 音樂
@@ -1106,11 +1096,21 @@ refreshAll();
 applyConfig();
 startSlideshow();
 
-// Firestore 照片同步
-if(db){
+// ═══ 登入狀態 + Firestore 同步 ═══
+function showPhotoErr(msg){
+  var el=document.getElementById('photo-err');
+  if(!el)return;
+  if(msg){el.textContent=msg;el.style.display='block';}else{el.style.display='none';}
+}
+
+function startSync(){
+  // 照片
   db.collection(COL).orderBy('order').onSnapshot(function(snap){
+    // 離線且本機沒有快取時，Firestore 會先給一個「空」快照，不代表雲端真的沒照片
+    if(snap.empty && snap.metadata.fromCache){return;}
+    showPhotoErr('');
     if(snap.empty){
-      DEFAULT_PHOTOS.forEach(function(p,i){db.collection(COL).doc(p.id).set({url:p.url,caption:p.caption||'',section:p.section||'hero',order:p.order||i}).catch(function(){})});
+      // 雲端真的沒有照片：只在畫面上顯示預設圖，不寫回 Firestore
       photosCache=[...DEFAULT_PHOTOS];
       refreshAll();
       return;
@@ -1118,21 +1118,35 @@ if(db){
     photosCache=snap.docs.map(function(d){var data=d.data();data.section=data.section||'hero';return{id:d.id,...data}});
     refreshAll();
   },function(err){
-    console.warn('Photos offline:',err.message);
+    console.error('Photos load failed:',err.code,err.message);
+    showPhotoErr('⚠️ 讀取雲端照片失敗（'+err.code+'）。目前畫面顯示的是預設照片，不是你上傳的照片。');
     refreshAll();
   });
-}
 
-// Firestore 設定同步
-if(db){
-  db.collection('invitation_config').doc('main').onSnapshot(function(snap){
-    if(!snap.exists){db.doc(CFG_PATH).set(DEFAULT_CFG).catch(function(){});return;}
-    cfg={...DEFAULT_CFG,...snap.data()};
-    if(cfg.adminPwd)try{localStorage.setItem('wedding_pwd',cfg.adminPwd)}catch(e){}
-    try{localStorage.setItem('wedding_cfg',JSON.stringify(snap.data()))}catch(e){}
+  // 設定
+  db.doc(CFG_PATH).onSnapshot(function(snap){
+    if(!snap.exists){return;}   // 沒有設定文件就用預設值，不由訪客端寫入
+    var d=snap.data();delete d.adminPwd;
+    cfg={...DEFAULT_CFG,...d};
+    try{localStorage.setItem('wedding_cfg',JSON.stringify(d))}catch(e){}
     applyConfig();
     if(document.getElementById('admin')&&document.getElementById('admin').classList.contains('on'))loadConfigForm();
-  },function(err){console.warn('Config offline:',err.message)});
+  },function(err){console.error('Config load failed:',err.code,err.message)});
+}
+
+var syncStarted=false;
+if(db&&auth){
+  auth.onAuthStateChanged(function(user){
+    if(user){
+      if(!syncStarted){syncStarted=true;startSync();}
+    }else{
+      // 訪客先匿名登入（規則要求 signed in 才能讀取）
+      auth.signInAnonymously().catch(function(e){
+        console.error('Anonymous sign-in failed:',e.code,e.message);
+        showPhotoErr('⚠️ 匿名登入失敗（'+e.code+'）。請到 Firebase Console → Authentication 啟用「匿名」登入。');
+      });
+    }
+  });
 }
 </script>
 </body>
