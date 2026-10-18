@@ -613,7 +613,7 @@ body{position:relative;}
 </div>
 
 <!-- ═══ 音樂 FAB ═══ -->
-<audio id="bgm" loop preload="metadata" src="https://cdn.pixabay.com/audio/2022/10/25/audio_31c3b8e8fa.mp3"></audio>
+<audio id="bgm" loop preload="auto" playsinline src="music.mp3"></audio>
 <button id="music-fab" class="muted" onclick="toggleMusic()" title="播放/暫停音樂">🎵</button>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-app-compat.min.js"></script>
@@ -653,7 +653,7 @@ var DEFAULT_CFG = {
   storyIntro:'',
   closing:'感謝您一路以來的關心與祝福\n您的蒞臨 是我們最大的榮幸\n期待在最美好的日子與您相見',
   sign:'With love, 勛凱 & 恩懿',
-  music:'https://cdn.pixabay.com/audio/2022/10/25/audio_31c3b8e8fa.mp3',
+  music:'music.mp3',
   heroSpeed:'4.5',chibi:'',adminPwd:''
 };
 
@@ -677,14 +677,14 @@ function showStage(id){
 }
 function openEnv(){
   document.getElementById('flap').classList.add('open');
-  setTimeout(function(){
-    showStage('main');
-    var b = document.getElementById('bgm');
-    var f = document.getElementById('music-fab');
-    if(b && !musicOn){
-      b.play().then(function(){ f.classList.add('playing'); f.classList.remove('muted'); f.textContent='🎶'; musicOn=true; }).catch(function(){});
-    }
-  }, 900);
+  // 在點擊當下就播放（iOS / LINE 瀏覽器必須在使用者手勢內同步呼叫 play）
+  var b = document.getElementById('bgm');
+  var f = document.getElementById('music-fab');
+  if(b && !musicOn){
+    b.play().then(function(){ f.classList.add('playing'); f.classList.remove('muted'); f.textContent='🎶'; musicOn=true; })
+     .catch(function(err){ console.warn('BGM 自動播放失敗:', err.name, err.message); });
+  }
+  setTimeout(function(){ showStage('main'); }, 900);
 }
 
 // ═══ 燈串 ═══
@@ -952,7 +952,7 @@ function applyConfig(){
   el=document.getElementById('invite-msg');if(el)el.innerHTML=cfg.invite.replace(/\n/g,'<br>');
   el=document.getElementById('closing-msg');if(el)el.innerHTML=cfg.closing.replace(/\n/g,'<br>');
   el=document.getElementById('closing-sign');if(el)el.innerHTML=cfg.sign;
-  el=document.getElementById('bgm');if(el&&cfg.music&&el.src!==cfg.music)el.src=cfg.music;
+  el=document.getElementById('bgm');if(el&&cfg.music&&el.getAttribute('src')!==cfg.music){el.setAttribute('src',cfg.music);el.load();}
   // 倒數目標
   var dp=cfg.date.split('.');
   WEDDING_TS=new Date(dp[0]+'-'+dp[1]+'-'+dp[2]+'T'+cfg.time1+':00+08:00').getTime();
@@ -1094,8 +1094,11 @@ function changePwd(){
 function toggleMusic(){
   var bgm=document.getElementById('bgm'),fab=document.getElementById('music-fab');
   if(musicOn){bgm.pause();fab.classList.remove('playing');fab.classList.add('muted');fab.textContent='🎵';musicOn=false;}
-  else{bgm.play().then(function(){fab.classList.add('playing');fab.classList.remove('muted');fab.textContent='🎶';musicOn=true}).catch(function(){alert('音樂載入失敗')});}
+  else{bgm.play().then(function(){fab.classList.add('playing');fab.classList.remove('muted');fab.textContent='🎶';musicOn=true}).catch(function(err){console.warn('BGM:',err);alert('音樂無法播放，請確認音樂檔是否存在：'+(bgm.currentSrc||bgm.getAttribute('src')));});}
 }
+
+// 音樂檔載入錯誤監聽
+document.getElementById('bgm').addEventListener('error',function(){console.warn('音樂檔載入失敗:',this.currentSrc||this.getAttribute('src'));});
 
 // ═══ 啟動 ═══
 makeFireflies();
